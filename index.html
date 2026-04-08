@@ -46,7 +46,14 @@
 
         <!-- Codes textarea -->
         <div class="px-4 pt-3 pb-3 border-b border-gray-100">
-          <label class="block text-xs font-medium text-gray-400 mb-1 uppercase tracking-wider">Danh sách mã</label>
+          <div class="flex items-center justify-between mb-2">
+            <label class="block text-xs font-medium text-gray-400 uppercase tracking-wider">Danh sách mã</label>
+            <label title="Tải lên file CSV" class="cursor-pointer flex items-center gap-1.5 text-xs font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-2 py-1 rounded-md transition">
+              <input type="file" id="csv-import" accept=".csv,.txt" class="hidden" />
+              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-upload text-indigo-500"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+              Upload CSV
+            </label>
+          </div>
           <textarea
             id="codes"
             placeholder="ABC123&#10;DEF456&#10;GHI789&#10;..."
@@ -81,6 +88,25 @@
     const listArea = document.getElementById('list-area');
     const rightPanel = document.getElementById('right-panel');
     const counterTop = document.getElementById('counter-top');
+    const csvImportEl = document.getElementById('csv-import');
+
+    csvImportEl.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const text = event.target.result;
+        const lines = text.split(/\r?\n/)
+          .map(line => line.split(',')[0].replace(/^"|"$/g, '').trim())
+          .filter(Boolean);
+        
+        codesEl.value = lines.join('\n');
+        parse();
+        csvImportEl.value = ''; // Reset for consecutive uploads
+      };
+      reader.readAsText(file);
+    });
 
     function parse() {
       const lines = codesEl.value.split('\n').map(l => l.trim()).filter(Boolean);
