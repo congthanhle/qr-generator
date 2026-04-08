@@ -175,7 +175,7 @@
       prev.onclick = () => { if (current > 0) { current--; renderList(); renderQR(); } };
 
       const counter = document.createElement('div');
-      counter.className = 'mono text-xs text-gray-400 w-16 text-center';
+      counter.className = 'mono text-xs text-gray-400 w-32 text-center';
       counter.textContent = `${current + 1} / ${items.length}`;
 
       const next = document.createElement('button');
