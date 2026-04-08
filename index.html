@@ -17,7 +17,7 @@
 </head>
 <body class="bg-gray-50 min-h-screen flex items-center justify-center p-4">
 
-  <div class="w-full max-w-7xl bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden flex flex-col" style="height: 90vh; max-height: 640px;">
+  <div class="w-full max-w-7xl bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden flex flex-col" style="height: 90vh; max-height: 960px;">
 
     <!-- Header -->
     <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
@@ -48,7 +48,7 @@
         <div class="px-4 pt-3 pb-3 border-b border-gray-100">
           <div class="flex items-center justify-between mb-2">
             <label class="block text-xs font-medium text-gray-400 uppercase tracking-wider">Danh sách mã</label>
-            <label title="Tải lên file CSV" class="cursor-pointer flex items-center gap-1.5 text-xs font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-2 py-1 rounded-md transition">
+            <label title="Tải lên file CSV" class="cursor-pointer flex items-center gap-1.5 text-sm font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-3 py-2 rounded-md transition">
               <input type="file" id="csv-import" accept=".csv,.txt" class="hidden" />
               <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-upload text-indigo-500"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
               Upload CSV
@@ -57,7 +57,7 @@
           <textarea
             id="codes"
             placeholder="ABC123&#10;DEF456&#10;GHI789&#10;..."
-            class="mono w-full text-xs border border-gray-200 rounded-lg px-3 py-2 bg-white text-gray-700 placeholder-gray-300 resize-none transition"
+            class="mono w-full text-sm border border-gray-200 rounded-lg px-3 py-2 bg-white text-gray-700 placeholder-gray-300 resize-none transition"
             rows="5"
           ></textarea>
         </div>
@@ -120,7 +120,7 @@
       listArea.innerHTML = '';
       items.forEach((code, i) => {
         const div = document.createElement('div');
-        div.className = 'code-item mono flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer text-xs border border-transparent text-gray-600 hover:bg-white hover:border-gray-200 transition mb-1 truncate' + (i === current ? ' active' : '');
+        div.className = 'code-item mono flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer text-sm border border-transparent text-gray-600 hover:bg-white hover:border-gray-200 transition mb-1 truncate' + (i === current ? ' active' : '');
         div.title = code;
         div.innerHTML = `<span class="text-gray-300 w-5 text-right flex-shrink-0">${i + 1}</span><span class="truncate">${code}</span>`;
         div.onclick = () => { current = i; renderList(); renderQR(); };
