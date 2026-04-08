@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QR Generator</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Sora:wght@400;500;600&display=swap');
+    body { font-family: 'Sora', sans-serif; }
+    .mono { font-family: 'JetBrains Mono', monospace; }
+    #qr-canvas img, #qr-canvas canvas { display: block; }
+    .code-item.active { background: #fff; border-color: #d1d5db; font-weight: 500; }
+    textarea:focus, input:focus { outline: none; box-shadow: 0 0 0 2px #6366f120; }
+  </style>
+</head>
+<body class="bg-gray-50 min-h-screen flex items-center justify-center p-4">
+
+  <div class="w-full max-w-7xl bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden flex flex-col" style="height: 90vh; max-height: 640px;">
+
+    <!-- Header -->
+    <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <div class="w-2 h-2 rounded-full bg-indigo-400"></div>
+        <h1 class="text-sm font-semibold text-gray-700 tracking-wide uppercase">QR Generator</h1>
+      </div>
+      <span id="counter-top" class="mono text-xs text-gray-400"></span>
+    </div>
+
+    <div class="flex flex-1 overflow-hidden">
+
+      <!-- LEFT PANEL -->
+      <div class="w-72 lg:w-96 flex-shrink-0 border-r border-gray-100 flex flex-col bg-gray-50">
+
+        <!-- Prefix input -->
+        <div class="px-4 pt-4 pb-3 border-b border-gray-100">
+          <label class="block text-xs font-medium text-gray-400 mb-1 uppercase tracking-wider">Prefix</label>
+          <input
+            id="prefix"
+            type="text"
+            placeholder="https://example.com/"
+            class="mono w-full text-sm border border-gray-200 rounded-lg px-3 py-2 bg-white text-gray-700 placeholder-gray-300 transition"
+          />
+        </div>
+
+        <!-- Codes textarea -->
+        <div class="px-4 pt-3 pb-3 border-b border-gray-100">
+          <label class="block text-xs font-medium text-gray-400 mb-1 uppercase tracking-wider">Danh sách mã</label>
+          <textarea
+            id="codes"
+            placeholder="ABC123&#10;DEF456&#10;GHI789&#10;..."
+            class="mono w-full text-xs border border-gray-200 rounded-lg px-3 py-2 bg-white text-gray-700 placeholder-gray-300 resize-none transition"
+            rows="5"
+          ></textarea>
+        </div>
+
+        <!-- List -->
+        <div class="flex-1 overflow-y-auto px-3 py-2" id="list-area"></div>
+
+        <!-- Keyboard hint -->
+        <div class="px-4 py-2 border-t border-gray-100">
+          <p class="text-xs text-gray-300 mono">← → hoặc Enter để chuyển</p>
+        </div>
+      </div>
+
+      <!-- RIGHT PANEL -->
+      <div class="flex-1 flex flex-col items-center justify-center gap-5 p-8 bg-white" id="right-panel">
+        <div class="text-sm text-gray-300">Nhập mã vào bên trái để bắt đầu</div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    let items = [];
+    let current = 0;
+
+    const codesEl = document.getElementById('codes');
+    const prefixEl = document.getElementById('prefix');
+    const listArea = document.getElementById('list-area');
+    const rightPanel = document.getElementById('right-panel');
+    const counterTop = document.getElementById('counter-top');
+
+    function parse() {
+      const lines = codesEl.value.split('\n').map(l => l.trim()).filter(Boolean);
+      items = lines;
+      current = Math.min(current, Math.max(0, items.length - 1));
+      renderList();
+      renderQR();
+    }
+
+    function renderList() {
+      listArea.innerHTML = '';
+      items.forEach((code, i) => {
+        const div = document.createElement('div');
+        div.className = 'code-item mono flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer text-xs border border-transparent text-gray-600 hover:bg-white hover:border-gray-200 transition mb-1 truncate' + (i === current ? ' active' : '');
+        div.title = code;
+        div.innerHTML = `<span class="text-gray-300 w-5 text-right flex-shrink-0">${i + 1}</span><span class="truncate">${code}</span>`;
+        div.onclick = () => { current = i; renderList(); renderQR(); };
+        listArea.appendChild(div);
+      });
+      const active = listArea.querySelector('.active');
+      if (active) active.scrollIntoView({ block: 'nearest' });
+    }
+
+    function renderQR() {
+      rightPanel.innerHTML = '';
+
+      if (items.length === 0) {
+        rightPanel.innerHTML = '<div class="text-sm text-gray-300">Nhập mã vào bên trái để bắt đầu</div>';
+        counterTop.textContent = '';
+        return;
+      }
+
+      counterTop.textContent = `${current + 1} / ${items.length}`;
+
+      const prefix = prefixEl.value;
+      const code = items[current];
+      const text = prefix + code;
+
+      // QR box
+      const qrBox = document.createElement('div');
+      qrBox.className = 'bg-white border border-gray-100 rounded-2xl p-5 shadow-sm';
+      const qrEl = document.createElement('div');
+      qrEl.id = 'qr-canvas';
+      qrBox.appendChild(qrEl);
+      rightPanel.appendChild(qrBox);
+
+      new QRCode(qrEl, { text, width: 200, height: 200, correctLevel: QRCode.CorrectLevel.M });
+
+      // Code label
+      const codeLabel = document.createElement('div');
+      codeLabel.className = 'text-center';
+      codeLabel.innerHTML = `
+        <div class="mono text-xs text-gray-400 mb-1">Mã hiện tại</div>
+        <div class="mono text-sm font-semibold text-gray-700 bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 max-w-xs break-all">${text}</div>
+      `;
+      rightPanel.appendChild(codeLabel);
+
+      // Nav buttons
+      const nav = document.createElement('div');
+      nav.className = 'flex items-center gap-3';
+
+      const prev = document.createElement('button');
+      prev.innerHTML = '← Prev';
+      prev.disabled = current === 0;
+      prev.className = `mono text-sm px-4 py-2 rounded-lg border transition ${current === 0 ? 'border-gray-100 text-gray-300 cursor-not-allowed' : 'border-gray-200 text-gray-600 hover:bg-gray-50 cursor-pointer'}`;
+      prev.onclick = () => { if (current > 0) { current--; renderList(); renderQR(); } };
+
+      const counter = document.createElement('div');
+      counter.className = 'mono text-xs text-gray-400 w-16 text-center';
+      counter.textContent = `${current + 1} / ${items.length}`;
+
+      const next = document.createElement('button');
+      next.innerHTML = 'Next →';
+      next.disabled = current === items.length - 1;
+      next.className = `mono text-sm px-4 py-2 rounded-lg border transition ${current === items.length - 1 ? 'border-gray-100 text-gray-300 cursor-not-allowed' : 'border-indigo-200 text-indigo-600 hover:bg-indigo-50 cursor-pointer'}`;
+      next.onclick = () => { if (current < items.length - 1) { current++; renderList(); renderQR(); } };
+
+      nav.appendChild(prev);
+      nav.appendChild(counter);
+      nav.appendChild(next);
+      rightPanel.appendChild(nav);
+    }
+
+    codesEl.addEventListener('input', parse);
+    prefixEl.addEventListener('input', () => renderQR());
+
+    document.addEventListener('keydown', (e) => {
+      if (items.length === 0) return;
+      const tag = document.activeElement.tagName;
+      if (tag === 'TEXTAREA' || tag === 'INPUT') return;
+      if (e.key === 'ArrowRight' || e.key === 'Enter') {
+        if (current < items.length - 1) { current++; renderList(); renderQR(); }
+      } else if (e.key === 'ArrowLeft') {
+        if (current > 0) { current--; renderList(); renderQR(); }
+      }
+    });
+
+    parse();
+  </script>
+</body>
+</html>
