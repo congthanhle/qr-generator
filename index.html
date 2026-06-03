@@ -3,9 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>QR Generator</title>
+  <title>QR Generator & Scanner</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Sora:wght@400;500;600&display=swap');
     body { font-family: 'Sora', sans-serif; }
@@ -13,6 +14,13 @@
     #qr-canvas img, #qr-canvas canvas { display: block; }
     .code-item.active { background: #fff; border-color: #d1d5db; font-weight: 500; }
     textarea:focus, input:focus { outline: none; box-shadow: 0 0 0 2px #6366f120; }
+    @keyframes scan {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(188px); }
+    }
+    .scanner-line {
+      animation: scan 2.5s ease-in-out infinite;
+    }
   </style>
 </head>
 <body class="bg-gray-50 min-h-screen flex items-center justify-center p-4">
@@ -21,59 +29,174 @@
 
     <!-- Header -->
     <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-      <div class="flex items-center gap-2">
-        <div class="w-2 h-2 rounded-full bg-indigo-400"></div>
-        <h1 class="text-sm font-semibold text-gray-700 tracking-wide uppercase">QR Generator</h1>
+      <div class="flex items-center gap-6">
+        <div class="flex items-center gap-2">
+          <div class="w-2.5 h-2.5 rounded-full bg-indigo-500"></div>
+          <h1 class="text-sm font-semibold text-gray-700 tracking-wide uppercase">QR Tool</h1>
+        </div>
+        <!-- Tab Navigation -->
+        <div class="flex gap-1 bg-gray-100 p-1 rounded-lg text-xs font-medium">
+          <button id="tab-generator" class="px-3 py-1.5 rounded-md bg-white text-gray-800 shadow-sm transition">Tạo QR</button>
+          <button id="tab-scanner" class="px-3 py-1.5 rounded-md text-gray-500 hover:text-gray-800 transition">Quét QR</button>
+        </div>
       </div>
       <span id="counter-top" class="mono text-xs text-gray-400"></span>
     </div>
 
-    <div class="flex flex-1 overflow-hidden">
+    <!-- MAIN CONTAINER -->
+    <div class="flex-1 flex overflow-hidden relative">
+      
+      <!-- PANEL GENERATOR -->
+      <div id="panel-generator" class="flex flex-1 overflow-hidden">
+        <!-- LEFT PANEL -->
+        <div class="w-72 lg:w-96 flex-shrink-0 border-r border-gray-100 flex flex-col bg-gray-50">
 
-      <!-- LEFT PANEL -->
-      <div class="w-72 lg:w-96 flex-shrink-0 border-r border-gray-100 flex flex-col bg-gray-50">
-
-        <!-- Prefix input -->
-        <div class="px-4 pt-4 pb-3 border-b border-gray-100">
-          <label class="block text-xs font-medium text-gray-400 mb-1 uppercase tracking-wider">Prefix</label>
-          <input
-            id="prefix"
-            type="text"
-            placeholder="https://example.com/"
-            class="mono w-full text-sm border border-gray-200 rounded-lg px-3 py-2 bg-white text-gray-700 placeholder-gray-300 transition"
-          />
-        </div>
-
-        <!-- Codes textarea -->
-        <div class="px-4 pt-3 pb-3 border-b border-gray-100">
-          <div class="flex items-center justify-between mb-2">
-            <label class="block text-xs font-medium text-gray-400 uppercase tracking-wider">Danh sách mã</label>
-            <label title="Tải lên file CSV" class="cursor-pointer flex items-center gap-1.5 text-sm font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-3 py-2 rounded-md transition">
-              <input type="file" id="csv-import" accept=".csv,.txt" class="hidden" />
-              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-upload text-indigo-500"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-              Upload CSV
-            </label>
+          <!-- Prefix input -->
+          <div class="px-4 pt-4 pb-3 border-b border-gray-100">
+            <label class="block text-xs font-medium text-gray-400 mb-1 uppercase tracking-wider">Prefix</label>
+            <input
+              id="prefix"
+              type="text"
+              placeholder="https://example.com/"
+              class="mono w-full text-sm border border-gray-200 rounded-lg px-3 py-2 bg-white text-gray-700 placeholder-gray-300 transition"
+            />
           </div>
-          <textarea
-            id="codes"
-            placeholder="ABC123&#10;DEF456&#10;GHI789&#10;..."
-            class="mono w-full text-sm border border-gray-200 rounded-lg px-3 py-2 bg-white text-gray-700 placeholder-gray-300 resize-none transition"
-            rows="5"
-          ></textarea>
+
+          <!-- Codes textarea -->
+          <div class="px-4 pt-3 pb-3 border-b border-gray-100">
+            <div class="flex items-center justify-between mb-2">
+              <label class="block text-xs font-medium text-gray-400 uppercase tracking-wider">Danh sách mã</label>
+              <label title="Tải lên file CSV" class="cursor-pointer flex items-center gap-1.5 text-sm font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-3 py-2 rounded-md transition">
+                <input type="file" id="csv-import" accept=".csv,.txt" class="hidden" />
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-upload text-indigo-500"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                Upload CSV
+              </label>
+            </div>
+            <textarea
+              id="codes"
+              placeholder="ABC123&#10;DEF456&#10;GHI789&#10;..."
+              class="mono w-full text-sm border border-gray-200 rounded-lg px-3 py-2 bg-white text-gray-700 placeholder-gray-300 resize-none transition"
+              rows="5"
+            ></textarea>
+          </div>
+
+          <!-- List -->
+          <div class="flex-1 overflow-y-auto px-3 py-2" id="list-area"></div>
+
+          <!-- Keyboard hint -->
+          <div class="px-4 py-2 border-t border-gray-100">
+            <p class="text-xs text-gray-300 mono">← → hoặc Enter để chuyển</p>
+          </div>
         </div>
 
-        <!-- List -->
-        <div class="flex-1 overflow-y-auto px-3 py-2" id="list-area"></div>
-
-        <!-- Keyboard hint -->
-        <div class="px-4 py-2 border-t border-gray-100">
-          <p class="text-xs text-gray-300 mono">← → hoặc Enter để chuyển</p>
+        <!-- RIGHT PANEL -->
+        <div class="flex-1 flex flex-col items-center justify-center gap-5 p-8 bg-white" id="right-panel">
+          <div class="text-sm text-gray-300">Nhập mã vào bên trái để bắt đầu</div>
         </div>
       </div>
 
-      <!-- RIGHT PANEL -->
-      <div class="flex-1 flex flex-col items-center justify-center gap-5 p-8 bg-white" id="right-panel">
-        <div class="text-sm text-gray-300">Nhập mã vào bên trái để bắt đầu</div>
+      <!-- PANEL SCANNER -->
+      <div id="panel-scanner" class="hidden flex-1 flex flex-col lg:flex-row overflow-hidden bg-white">
+        <!-- LEFT SCAN PANEL: Upload/Drag Area -->
+        <div class="flex-1 p-6 flex flex-col justify-center items-center bg-gray-50 border-r border-gray-100 overflow-y-auto">
+          <div class="w-full max-w-lg flex flex-col gap-5">
+            <h2 class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Tải lên hoặc Quét mã QR</h2>
+            
+            <!-- Drag & Drop Zone -->
+            <div id="drop-zone" class="border-2 border-dashed border-gray-200 hover:border-indigo-500 bg-white hover:bg-indigo-50/10 rounded-2xl p-8 flex flex-col items-center justify-center gap-4 cursor-pointer transition-all duration-200 min-h-[280px] text-center relative group shadow-sm hover:shadow-md">
+              <input type="file" id="scan-file" accept="image/*" class="hidden" />
+              <!-- Icon -->
+              <div class="p-4 bg-indigo-50 rounded-2xl text-indigo-500 group-hover:scale-105 transition duration-200">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect><line x1="7" y1="17" x2="7" y2="17.01"></line><line x1="17" y1="17" x2="17" y2="17.01"></line><line x1="17" y1="7" x2="17" y2="7.01"></line><line x1="7" y1="7" x2="7" y2="7.01"></line></svg>
+              </div>
+              <div class="flex flex-col gap-1">
+                <span class="text-sm font-medium text-gray-700">Kéo thả ảnh QR vào đây</span>
+                <span class="text-xs text-gray-400">hoặc click để chọn tệp từ thiết bị</span>
+              </div>
+              <span class="text-[11px] text-gray-300 mono mt-1">Hỗ trợ Ctrl + V để dán ảnh chụp màn hình</span>
+            </div>
+            
+            <!-- Divider -->
+            <div class="flex items-center justify-center gap-4 text-xs font-semibold text-gray-400 uppercase tracking-wider my-1">
+              <div class="h-[1px] bg-gray-200 flex-1"></div>
+              <span>hoặc</span>
+              <div class="h-[1px] bg-gray-200 flex-1"></div>
+            </div>
+
+            <!-- Camera option -->
+            <div class="flex justify-center">
+              <button id="btn-toggle-camera" class="flex items-center gap-2 text-sm font-medium text-indigo-600 hover:text-indigo-700 bg-indigo-50 hover:bg-indigo-100/85 px-5 py-3 rounded-xl transition shadow-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+                Quét bằng Camera
+              </button>
+            </div>
+            
+            <!-- Camera View Container (Hidden by default) -->
+            <div id="camera-container" class="hidden relative rounded-2xl overflow-hidden border border-gray-200 bg-black aspect-video flex items-center justify-center shadow-lg">
+              <video id="webcam" class="w-full h-full object-cover" playsinline></video>
+              <canvas id="camera-canvas" class="hidden"></canvas>
+              <!-- Scanner overlay lines -->
+              <div class="absolute inset-0 pointer-events-none flex items-center justify-center">
+                <div class="w-48 h-48 border-2 border-indigo-500 rounded-xl relative overflow-hidden shadow-[0_0_0_9999px_rgba(0,0,0,0.5)]">
+                  <div class="absolute top-0 inset-x-0 h-0.5 bg-indigo-500 shadow-[0_0_8px_#6366f1] scanner-line"></div>
+                </div>
+              </div>
+              <!-- Close button for camera -->
+              <button id="btn-close-camera" class="absolute top-3 right-3 bg-gray-900/70 hover:bg-gray-900 text-white p-2.5 rounded-full transition shadow-md">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT SCAN PANEL: Results -->
+        <div class="w-full lg:w-[450px] p-6 flex flex-col justify-center items-center bg-white overflow-y-auto">
+          <div class="w-full max-w-sm flex flex-col gap-6" id="scan-result-container">
+            <!-- Initial state: No QR scanned -->
+            <div id="scan-placeholder" class="text-center py-12 flex flex-col items-center gap-3">
+              <div class="w-12 h-12 rounded-full bg-gray-50 flex items-center justify-center text-gray-300">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+              </div>
+              <p class="text-sm text-gray-400">Chưa có kết quả quét. Hãy tải lên hoặc sử dụng camera.</p>
+            </div>
+
+            <!-- Active state: Result found or error -->
+            <div id="scan-content" class="hidden flex flex-col gap-5">
+              <!-- Image preview -->
+              <div class="flex flex-col items-center gap-2">
+                <span class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Ảnh đã quét</span>
+                <div class="border border-gray-200 rounded-xl overflow-hidden max-h-36 max-w-[180px] shadow-sm bg-gray-50 flex items-center justify-center p-1">
+                  <img id="scan-preview" class="object-contain max-h-32 max-w-full rounded-lg" alt="QR Preview" />
+                </div>
+              </div>
+
+              <!-- Result field -->
+              <div class="flex flex-col gap-1.5">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-medium text-gray-400 uppercase tracking-wider">Nội dung giải mã</span>
+                  <span id="scan-status" class="text-[10px] font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full uppercase">Thành công</span>
+                </div>
+                <textarea id="scan-text-result" readonly class="mono w-full text-sm border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 text-gray-700 resize-none font-medium h-32 focus:border-indigo-500 transition-colors"></textarea>
+              </div>
+
+              <!-- Action buttons -->
+              <div class="flex flex-col gap-2">
+                <button id="btn-copy-result" class="w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-sm py-2.5 px-4 rounded-xl shadow-sm hover:shadow transition-all duration-150">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-copy"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                  <span>Copy nội dung</span>
+                </button>
+                <a id="btn-open-link" href="#" target="_blank" class="hidden w-full flex items-center justify-center gap-2 bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 font-medium text-sm py-2.5 px-4 rounded-xl transition shadow-sm">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                  <span>Mở liên kết</span>
+                </a>
+                <button id="btn-clear-scan" class="w-full flex items-center justify-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-600 font-medium text-sm py-2 px-4 rounded-xl transition">
+                  Quét ảnh khác
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
       </div>
 
     </div>
@@ -89,6 +212,12 @@
     const rightPanel = document.getElementById('right-panel');
     const counterTop = document.getElementById('counter-top');
     const csvImportEl = document.getElementById('csv-import');
+
+    // Tab elements
+    const tabGenerator = document.getElementById('tab-generator');
+    const tabScanner = document.getElementById('tab-scanner');
+    const panelGenerator = document.getElementById('panel-generator');
+    const panelScanner = document.getElementById('panel-scanner');
 
     csvImportEl.addEventListener('change', (e) => {
       const file = e.target.files[0];
@@ -135,11 +264,15 @@
 
       if (items.length === 0) {
         rightPanel.innerHTML = '<div class="text-sm text-gray-300">Nhập mã vào bên trái để bắt đầu</div>';
-        counterTop.textContent = '';
+        if (panelScanner.classList.contains('hidden')) {
+          counterTop.textContent = '';
+        }
         return;
       }
 
-      counterTop.textContent = `${current + 1} / ${items.length}`;
+      if (panelScanner.classList.contains('hidden')) {
+        counterTop.textContent = `${current + 1} / ${items.length}`;
+      }
 
       const prefix = prefixEl.value;
       const code = items[current];
@@ -194,6 +327,7 @@
     prefixEl.addEventListener('input', () => renderQR());
 
     document.addEventListener('keydown', (e) => {
+      if (panelGenerator.classList.contains('hidden')) return; // Disable generator keys on scan tab
       if (items.length === 0) return;
       const tag = document.activeElement.tagName;
       if (tag === 'TEXTAREA' || tag === 'INPUT') return;
@@ -203,6 +337,272 @@
         if (current > 0) { current--; renderList(); renderQR(); }
       }
     });
+
+    // Tab selection logic
+    tabGenerator.addEventListener('click', () => {
+      tabGenerator.classList.add('bg-white', 'text-gray-800', 'shadow-sm');
+      tabGenerator.classList.remove('text-gray-500');
+      tabScanner.classList.remove('bg-white', 'text-gray-800', 'shadow-sm');
+      tabScanner.classList.add('text-gray-500');
+      
+      panelGenerator.classList.remove('hidden');
+      panelScanner.classList.add('hidden');
+      
+      if (items.length > 0) {
+        counterTop.textContent = `${current + 1} / ${items.length}`;
+      } else {
+        counterTop.textContent = '';
+      }
+      counterTop.style.visibility = 'visible';
+      stopCamera();
+    });
+
+    tabScanner.addEventListener('click', () => {
+      tabScanner.classList.add('bg-white', 'text-gray-800', 'shadow-sm');
+      tabScanner.classList.remove('text-gray-500');
+      tabGenerator.classList.remove('bg-white', 'text-gray-800', 'shadow-sm');
+      tabGenerator.classList.add('text-gray-500');
+      
+      panelScanner.classList.remove('hidden');
+      panelGenerator.classList.add('hidden');
+      
+      counterTop.style.visibility = 'hidden';
+    });
+
+    // --- SCANNER LOGIC ---
+    const dropZone = document.getElementById('drop-zone');
+    const scanFile = document.getElementById('scan-file');
+    const scanPlaceholder = document.getElementById('scan-placeholder');
+    const scanContent = document.getElementById('scan-content');
+    const scanPreview = document.getElementById('scan-preview');
+    const scanStatus = document.getElementById('scan-status');
+    const scanTextResult = document.getElementById('scan-text-result');
+    const btnCopyResult = document.getElementById('btn-copy-result');
+    const btnOpenLink = document.getElementById('btn-open-link');
+    const btnClearScan = document.getElementById('btn-clear-scan');
+
+    const btnToggleCamera = document.getElementById('btn-toggle-camera');
+    const cameraContainer = document.getElementById('camera-container');
+    const webcam = document.getElementById('webcam');
+    const cameraCanvas = document.getElementById('camera-canvas');
+    const btnCloseCamera = document.getElementById('btn-close-camera');
+
+    let cameraStream = null;
+    let cameraActive = false;
+    let scanAnimationId = null;
+
+    // Trigger file selection on click (only when clicking the zone itself, not when camera is active)
+    dropZone.addEventListener('click', (e) => {
+      if (e.target !== scanFile) {
+        scanFile.click();
+      }
+    });
+
+    scanFile.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) handleQRFile(file);
+    });
+
+    // Drag and drop events
+    ['dragenter', 'dragover'].forEach(eventName => {
+      dropZone.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dropZone.classList.add('border-indigo-500', 'bg-indigo-50/20');
+      }, false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+      dropZone.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dropZone.classList.remove('border-indigo-500', 'bg-indigo-50/20');
+      }, false);
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+      const dt = e.dataTransfer;
+      const file = dt.files[0];
+      if (file && file.type.startsWith('image/')) {
+        handleQRFile(file);
+      }
+    });
+
+    // Clipboard paste event
+    document.addEventListener('paste', (e) => {
+      if (panelScanner.classList.contains('hidden')) return;
+      const clipboardItems = (e.clipboardData || e.originalEvent.clipboardData).items;
+      for (let item of clipboardItems) {
+        if (item.type.indexOf('image') === 0) {
+          const file = item.getAsFile();
+          handleQRFile(file);
+          break;
+        }
+      }
+    });
+
+    function handleQRFile(file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const dataUrl = e.target.result;
+        scanPreview.src = dataUrl;
+        
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          canvas.width = img.naturalWidth;
+          canvas.height = img.naturalHeight;
+          ctx.drawImage(img, 0, 0);
+          
+          try {
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const code = jsQR(imageData.data, imageData.width, imageData.height);
+            if (code) {
+              showScanResult(code.data, true);
+            } else {
+              showScanResult('Không tìm thấy mã QR trong ảnh này. Vui lòng thử lại với một ảnh QR rõ nét hơn.', false);
+            }
+          } catch (err) {
+            showScanResult('Đã xảy ra lỗi khi phân tích ảnh: ' + err.message, false);
+          }
+        };
+        img.onerror = () => {
+          showScanResult('Tải file ảnh thất bại. Định dạng file có thể không hợp lệ.', false);
+        };
+        img.src = dataUrl;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function showScanResult(text, success) {
+      stopCamera();
+      
+      scanPlaceholder.classList.add('hidden');
+      scanContent.classList.remove('hidden');
+      scanTextResult.value = text;
+      
+      if (success) {
+        scanStatus.textContent = 'Thành công';
+        scanStatus.className = 'text-[10px] font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full uppercase';
+        
+        // Simple URL validation
+        const isUrl = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?(\?.*)?(#.*)?$/i.test(text.trim());
+        if (isUrl) {
+          let url = text.trim();
+          if (!url.startsWith('http://') && !url.startsWith('https://')) {
+            url = 'https://' + url;
+          }
+          btnOpenLink.href = url;
+          btnOpenLink.classList.remove('hidden');
+        } else {
+          btnOpenLink.classList.add('hidden');
+        }
+      } else {
+        scanStatus.textContent = 'Lỗi';
+        scanStatus.className = 'text-[10px] font-semibold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-full uppercase';
+        btnOpenLink.classList.add('hidden');
+      }
+    }
+
+    btnCopyResult.addEventListener('click', () => {
+      const text = scanTextResult.value;
+      if (!text) return;
+      
+      navigator.clipboard.writeText(text).then(() => {
+        const btnText = btnCopyResult.querySelector('span');
+        const originalText = btnText.textContent;
+        btnText.textContent = 'Đã copy!';
+        btnCopyResult.classList.add('bg-emerald-600', 'hover:bg-emerald-700');
+        btnCopyResult.classList.remove('bg-indigo-600', 'hover:bg-indigo-700');
+        
+        setTimeout(() => {
+          btnText.textContent = originalText;
+          btnCopyResult.classList.remove('bg-emerald-600', 'hover:bg-emerald-700');
+          btnCopyResult.classList.add('bg-indigo-600', 'hover:bg-indigo-700');
+        }, 2000);
+      });
+    });
+
+    btnClearScan.addEventListener('click', resetScanner);
+    
+    function resetScanner() {
+      scanFile.value = '';
+      scanPreview.src = '';
+      scanTextResult.value = '';
+      scanPlaceholder.classList.remove('hidden');
+      scanContent.classList.add('hidden');
+      btnOpenLink.classList.add('hidden');
+      stopCamera();
+    }
+
+    // Camera scanning logic
+    btnToggleCamera.addEventListener('click', startCamera);
+    btnCloseCamera.addEventListener('click', stopCamera);
+
+    async function startCamera() {
+      resetScanner();
+      
+      try {
+        cameraStream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
+        });
+        
+        webcam.srcObject = cameraStream;
+        webcam.setAttribute('playsinline', true);
+        webcam.play();
+        
+        cameraActive = true;
+        cameraContainer.classList.remove('hidden');
+        dropZone.classList.add('hidden');
+        btnToggleCamera.classList.add('hidden');
+        
+        scanAnimationId = requestAnimationFrame(scanCameraFrame);
+      } catch (err) {
+        alert('Không thể truy cập camera: ' + err.message);
+      }
+    }
+
+    function stopCamera() {
+      cameraActive = false;
+      if (scanAnimationId) {
+        cancelAnimationFrame(scanAnimationId);
+        scanAnimationId = null;
+      }
+      
+      if (cameraStream) {
+        cameraStream.getTracks().forEach(track => track.stop());
+        cameraStream = null;
+      }
+      
+      webcam.srcObject = null;
+      cameraContainer.classList.add('hidden');
+      dropZone.classList.remove('hidden');
+      btnToggleCamera.classList.remove('hidden');
+    }
+
+    function scanCameraFrame() {
+      if (!cameraActive) return;
+      
+      if (webcam.readyState === webcam.HAVE_ENOUGH_DATA) {
+        cameraCanvas.width = webcam.videoWidth;
+        cameraCanvas.height = webcam.videoHeight;
+        
+        const ctx = cameraCanvas.getContext('2d');
+        ctx.drawImage(webcam, 0, 0, cameraCanvas.width, cameraCanvas.height);
+        
+        const imageData = ctx.getImageData(0, 0, cameraCanvas.width, cameraCanvas.height);
+        const code = jsQR(imageData.data, imageData.width, imageData.height);
+        
+        if (code) {
+          scanPreview.src = cameraCanvas.toDataURL();
+          showScanResult(code.data, true);
+          return; // Stop scanning
+        }
+      }
+      
+      scanAnimationId = requestAnimationFrame(scanCameraFrame);
+    }
 
     parse();
   </script>
