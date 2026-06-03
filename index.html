@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>QR Generator & Scanner</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -23,50 +23,50 @@
     }
   </style>
 </head>
-<body class="bg-gray-50 min-h-screen flex items-center justify-center p-4">
+<body class="bg-gray-50 min-h-screen flex items-center justify-center p-0 sm:p-4">
 
-  <div class="w-full max-w-7xl bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden flex flex-col" style="height: 90vh; max-height: 960px;">
+  <div class="w-full max-w-7xl bg-white rounded-none sm:rounded-2xl shadow-sm border-0 sm:border border-gray-200 overflow-hidden flex flex-col h-screen sm:h-[90vh] sm:max-h-[960px]">
 
     <!-- Header -->
-    <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-      <div class="flex items-center gap-6">
+    <div class="px-4 py-3 sm:px-6 sm:py-4 border-b border-gray-100 flex items-center justify-between flex-shrink-0">
+      <div class="flex items-center gap-4 sm:gap-6">
         <div class="flex items-center gap-2">
           <div class="w-2.5 h-2.5 rounded-full bg-indigo-500"></div>
-          <h1 class="text-sm font-semibold text-gray-700 tracking-wide uppercase">QR Tool</h1>
+          <h1 class="text-xs sm:text-sm font-semibold text-gray-700 tracking-wide uppercase">QR Tool</h1>
         </div>
         <!-- Tab Navigation -->
-        <div class="flex gap-1 bg-gray-100 p-1 rounded-lg text-xs font-medium">
-          <button id="tab-generator" class="px-3 py-1.5 rounded-md bg-white text-gray-800 shadow-sm transition">Tạo QR</button>
-          <button id="tab-scanner" class="px-3 py-1.5 rounded-md text-gray-500 hover:text-gray-800 transition">Quét QR</button>
+        <div class="flex gap-0.5 sm:gap-1 bg-gray-100 p-0.5 sm:p-1 rounded-lg text-[11px] sm:text-xs font-medium">
+          <button id="tab-generator" class="px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-md bg-white text-gray-800 shadow-sm transition">Tạo QR</button>
+          <button id="tab-scanner" class="px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-md text-gray-500 hover:text-gray-800 transition">Quét QR</button>
         </div>
       </div>
       <span id="counter-top" class="mono text-xs text-gray-400"></span>
     </div>
 
     <!-- MAIN CONTAINER -->
-    <div class="flex-1 flex overflow-hidden relative">
+    <div class="flex-1 flex flex-col overflow-y-auto md:overflow-hidden relative">
       
       <!-- PANEL GENERATOR -->
-      <div id="panel-generator" class="flex flex-1 overflow-hidden">
+      <div id="panel-generator" class="flex flex-col md:flex-row flex-1 md:overflow-hidden">
         <!-- LEFT PANEL -->
-        <div class="w-72 lg:w-96 flex-shrink-0 border-r border-gray-100 flex flex-col bg-gray-50">
+        <div class="w-full md:w-72 lg:w-96 flex-shrink-0 border-b md:border-b-0 md:border-r border-gray-100 flex flex-col bg-gray-50">
 
           <!-- Prefix input -->
           <div class="px-4 pt-4 pb-3 border-b border-gray-100">
-            <label class="block text-xs font-medium text-gray-400 mb-1 uppercase tracking-wider">Prefix</label>
+            <label class="block text-[10px] sm:text-xs font-medium text-gray-400 mb-1 uppercase tracking-wider">Prefix</label>
             <input
               id="prefix"
               type="text"
               placeholder="https://example.com/"
-              class="mono w-full text-sm border border-gray-200 rounded-lg px-3 py-2 bg-white text-gray-700 placeholder-gray-300 transition"
+              class="mono w-full text-xs sm:text-sm border border-gray-200 rounded-lg px-3 py-2 bg-white text-gray-700 placeholder-gray-300 transition"
             />
           </div>
 
           <!-- Codes textarea -->
           <div class="px-4 pt-3 pb-3 border-b border-gray-100">
             <div class="flex items-center justify-between mb-2">
-              <label class="block text-xs font-medium text-gray-400 uppercase tracking-wider">Danh sách mã</label>
-              <label title="Tải lên file CSV" class="cursor-pointer flex items-center gap-1.5 text-sm font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-3 py-2 rounded-md transition">
+              <label class="block text-[10px] sm:text-xs font-medium text-gray-400 uppercase tracking-wider">Danh sách mã</label>
+              <label title="Tải lên file CSV" class="cursor-pointer flex items-center gap-1.5 text-xs sm:text-sm font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-md transition">
                 <input type="file" id="csv-import" accept=".csv,.txt" class="hidden" />
                 <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-upload text-indigo-500"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
                 Upload CSV
@@ -75,49 +75,49 @@
             <textarea
               id="codes"
               placeholder="ABC123&#10;DEF456&#10;GHI789&#10;..."
-              class="mono w-full text-sm border border-gray-200 rounded-lg px-3 py-2 bg-white text-gray-700 placeholder-gray-300 resize-none transition"
+              class="mono w-full text-xs sm:text-sm border border-gray-200 rounded-lg px-3 py-2 bg-white text-gray-700 placeholder-gray-300 resize-none transition"
               rows="5"
             ></textarea>
           </div>
 
           <!-- List -->
-          <div class="flex-1 overflow-y-auto px-3 py-2" id="list-area"></div>
+          <div class="flex-1 min-h-[120px] max-h-60 md:max-h-none overflow-y-auto px-3 py-2" id="list-area"></div>
 
           <!-- Keyboard hint -->
-          <div class="px-4 py-2 border-t border-gray-100">
+          <div class="px-4 py-2 border-t border-gray-100 hidden md:block">
             <p class="text-xs text-gray-300 mono">← → hoặc Enter để chuyển</p>
           </div>
         </div>
 
         <!-- RIGHT PANEL -->
-        <div class="flex-1 flex flex-col items-center justify-center gap-5 p-8 bg-white" id="right-panel">
+        <div class="flex-1 flex flex-col items-center justify-center gap-5 p-6 md:p-8 bg-white min-h-[350px] md:min-h-0" id="right-panel">
           <div class="text-sm text-gray-300">Nhập mã vào bên trái để bắt đầu</div>
         </div>
       </div>
 
       <!-- PANEL SCANNER -->
-      <div id="panel-scanner" class="hidden flex-1 flex flex-col lg:flex-row overflow-hidden bg-white">
+      <div id="panel-scanner" class="hidden flex-1 flex flex-col lg:flex-row lg:overflow-hidden bg-white">
         <!-- LEFT SCAN PANEL: Upload/Drag Area -->
-        <div class="flex-1 p-6 flex flex-col justify-center items-center bg-gray-50 border-r border-gray-100 overflow-y-auto">
-          <div class="w-full max-w-lg flex flex-col gap-5">
-            <h2 class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Tải lên hoặc Quét mã QR</h2>
+        <div class="flex-1 p-4 md:p-6 flex flex-col justify-center items-center bg-gray-50 border-b lg:border-b-0 lg:border-r border-gray-100 min-h-[320px] lg:min-h-0 py-8 lg:py-0">
+          <div class="w-full max-w-lg flex flex-col gap-4 md:gap-5">
+            <h2 class="text-[10px] sm:text-xs font-semibold text-gray-400 uppercase tracking-wider">Tải lên hoặc Quét mã QR</h2>
             
             <!-- Drag & Drop Zone -->
-            <div id="drop-zone" class="border-2 border-dashed border-gray-200 hover:border-indigo-500 bg-white hover:bg-indigo-50/10 rounded-2xl p-8 flex flex-col items-center justify-center gap-4 cursor-pointer transition-all duration-200 min-h-[280px] text-center relative group shadow-sm hover:shadow-md">
+            <div id="drop-zone" class="border-2 border-dashed border-gray-200 hover:border-indigo-500 bg-white hover:bg-indigo-50/10 rounded-2xl p-6 sm:p-8 flex flex-col items-center justify-center gap-3 sm:gap-4 cursor-pointer transition-all duration-200 min-h-[180px] sm:min-h-[280px] text-center relative group shadow-sm hover:shadow-md">
               <input type="file" id="scan-file" accept="image/*" class="hidden" />
               <!-- Icon -->
-              <div class="p-4 bg-indigo-50 rounded-2xl text-indigo-500 group-hover:scale-105 transition duration-200">
-                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect><line x1="7" y1="17" x2="7" y2="17.01"></line><line x1="17" y1="17" x2="17" y2="17.01"></line><line x1="17" y1="7" x2="17" y2="7.01"></line><line x1="7" y1="7" x2="7" y2="7.01"></line></svg>
+              <div class="p-3 sm:p-4 bg-indigo-50 rounded-2xl text-indigo-500 group-hover:scale-105 transition duration-200">
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="sm:w-8 sm:h-8"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect><line x1="7" y1="17" x2="7" y2="17.01"></line><line x1="17" y1="17" x2="17" y2="17.01"></line><line x1="17" y1="7" x2="17" y2="7.01"></line><line x1="7" y1="7" x2="7" y2="7.01"></line></svg>
               </div>
               <div class="flex flex-col gap-1">
-                <span class="text-sm font-medium text-gray-700">Kéo thả ảnh QR vào đây</span>
-                <span class="text-xs text-gray-400">hoặc click để chọn tệp từ thiết bị</span>
+                <span class="text-xs sm:text-sm font-medium text-gray-700">Kéo thả ảnh QR vào đây</span>
+                <span class="text-[11px] sm:text-xs text-gray-400">hoặc click để chọn tệp từ thiết bị</span>
               </div>
-              <span class="text-[11px] text-gray-300 mono mt-1">Hỗ trợ Ctrl + V để dán ảnh chụp màn hình</span>
+              <span class="text-[10px] text-gray-300 mono mt-1 hidden sm:inline-block">Hỗ trợ Ctrl + V để dán ảnh chụp màn hình</span>
             </div>
             
             <!-- Divider -->
-            <div class="flex items-center justify-center gap-4 text-xs font-semibold text-gray-400 uppercase tracking-wider my-1">
+            <div class="flex items-center justify-center gap-4 text-[10px] sm:text-xs font-semibold text-gray-400 uppercase tracking-wider my-1">
               <div class="h-[1px] bg-gray-200 flex-1"></div>
               <span>hoặc</span>
               <div class="h-[1px] bg-gray-200 flex-1"></div>
@@ -125,8 +125,8 @@
 
             <!-- Camera option -->
             <div class="flex justify-center">
-              <button id="btn-toggle-camera" class="flex items-center gap-2 text-sm font-medium text-indigo-600 hover:text-indigo-700 bg-indigo-50 hover:bg-indigo-100/85 px-5 py-3 rounded-xl transition shadow-sm">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+              <button id="btn-toggle-camera" class="flex items-center gap-2 text-xs sm:text-sm font-medium text-indigo-600 hover:text-indigo-700 bg-indigo-50 hover:bg-indigo-100/85 px-4 py-2.5 sm:px-5 sm:py-3 rounded-xl transition shadow-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="sm:w-4 sm:h-4"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
                 Quét bằng Camera
               </button>
             </div>
@@ -150,46 +150,46 @@
         </div>
 
         <!-- RIGHT SCAN PANEL: Results -->
-        <div class="w-full lg:w-[450px] p-6 flex flex-col justify-center items-center bg-white overflow-y-auto">
-          <div class="w-full max-w-sm flex flex-col gap-6" id="scan-result-container">
+        <div class="w-full lg:w-[450px] p-4 md:p-6 flex flex-col justify-center items-center bg-white min-h-[280px] lg:min-h-0 py-8 lg:py-0">
+          <div class="w-full max-w-sm flex flex-col gap-4 sm:gap-6" id="scan-result-container">
             <!-- Initial state: No QR scanned -->
-            <div id="scan-placeholder" class="text-center py-12 flex flex-col items-center gap-3">
+            <div id="scan-placeholder" class="text-center py-10 flex flex-col items-center gap-3">
               <div class="w-12 h-12 rounded-full bg-gray-50 flex items-center justify-center text-gray-300">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
               </div>
-              <p class="text-sm text-gray-400">Chưa có kết quả quét. Hãy tải lên hoặc sử dụng camera.</p>
+              <p class="text-xs sm:text-sm text-gray-400">Chưa có kết quả quét. Hãy tải lên hoặc sử dụng camera.</p>
             </div>
 
             <!-- Active state: Result found or error -->
-            <div id="scan-content" class="hidden flex flex-col gap-5">
+            <div id="scan-content" class="hidden flex flex-col gap-4 sm:gap-5 w-full">
               <!-- Image preview -->
               <div class="flex flex-col items-center gap-2">
-                <span class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Ảnh đã quét</span>
-                <div class="border border-gray-200 rounded-xl overflow-hidden max-h-36 max-w-[180px] shadow-sm bg-gray-50 flex items-center justify-center p-1">
-                  <img id="scan-preview" class="object-contain max-h-32 max-w-full rounded-lg" alt="QR Preview" />
+                <span class="text-[9px] sm:text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Ảnh đã quét</span>
+                <div class="border border-gray-200 rounded-xl overflow-hidden max-h-32 max-w-[160px] sm:max-h-36 sm:max-w-[180px] shadow-sm bg-gray-50 flex items-center justify-center p-1">
+                  <img id="scan-preview" class="object-contain max-h-28 sm:max-h-32 max-w-full rounded-lg" alt="QR Preview" />
                 </div>
               </div>
 
               <!-- Result field -->
               <div class="flex flex-col gap-1.5">
                 <div class="flex items-center justify-between">
-                  <span class="text-xs font-medium text-gray-400 uppercase tracking-wider">Nội dung giải mã</span>
-                  <span id="scan-status" class="text-[10px] font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full uppercase">Thành công</span>
+                  <span class="text-[10px] sm:text-xs font-medium text-gray-400 uppercase tracking-wider">Nội dung giải mã</span>
+                  <span id="scan-status" class="text-[9px] sm:text-[10px] font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full uppercase">Thành công</span>
                 </div>
-                <textarea id="scan-text-result" readonly class="mono w-full text-sm border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 text-gray-700 resize-none font-medium h-32 focus:border-indigo-500 transition-colors"></textarea>
+                <textarea id="scan-text-result" readonly class="mono w-full text-xs sm:text-sm border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 text-gray-700 resize-none font-medium h-28 sm:h-32 focus:border-indigo-500 transition-colors"></textarea>
               </div>
 
               <!-- Action buttons -->
               <div class="flex flex-col gap-2">
-                <button id="btn-copy-result" class="w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-sm py-2.5 px-4 rounded-xl shadow-sm hover:shadow transition-all duration-150">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-copy"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                <button id="btn-copy-result" class="w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-xs sm:text-sm py-2 sm:py-2.5 px-4 rounded-xl shadow-sm hover:shadow transition-all duration-150">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-copy sm:w-4 sm:h-4"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
                   <span>Copy nội dung</span>
                 </button>
-                <a id="btn-open-link" href="#" target="_blank" class="hidden w-full flex items-center justify-center gap-2 bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 font-medium text-sm py-2.5 px-4 rounded-xl transition shadow-sm">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                <a id="btn-open-link" href="#" target="_blank" class="hidden w-full flex items-center justify-center gap-2 bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 font-medium text-xs sm:text-sm py-2 sm:py-2.5 px-4 rounded-xl transition shadow-sm">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="sm:w-4 sm:h-4"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
                   <span>Mở liên kết</span>
                 </a>
-                <button id="btn-clear-scan" class="w-full flex items-center justify-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-600 font-medium text-sm py-2 px-4 rounded-xl transition">
+                <button id="btn-clear-scan" class="w-full flex items-center justify-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-600 font-medium text-xs sm:text-sm py-2 px-4 rounded-xl transition">
                   Quét ảnh khác
                 </button>
               </div>
