@@ -7,6 +7,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Sora:wght@400;500;600&display=swap');
     body { font-family: 'Sora', sans-serif; }
@@ -49,18 +50,8 @@
       <!-- PANEL GENERATOR -->
       <div id="panel-generator" class="flex flex-col md:flex-row flex-1 md:overflow-hidden">
         <!-- LEFT PANEL -->
-        <div class="w-full md:w-72 lg:w-96 flex-shrink-0 border-b md:border-b-0 md:border-r border-gray-100 flex flex-col bg-gray-50">
+        <div class="w-full md:w-[40%] flex-shrink-0 border-b md:border-b-0 md:border-r border-gray-100 flex flex-col bg-gray-50">
 
-          <!-- Prefix input -->
-          <div class="px-4 pt-4 pb-3 border-b border-gray-100">
-            <label class="block text-[10px] sm:text-xs font-medium text-gray-400 mb-1 uppercase tracking-wider">Prefix</label>
-            <input
-              id="prefix"
-              type="text"
-              placeholder="https://example.com/"
-              class="mono w-full text-xs sm:text-sm border border-gray-200 rounded-lg px-3 py-2 bg-white text-gray-700 placeholder-gray-300 transition"
-            />
-          </div>
 
           <!-- Codes textarea -->
           <div class="px-4 pt-3 pb-3 border-b border-gray-100">
@@ -80,6 +71,25 @@
             ></textarea>
           </div>
 
+          <!-- Export Area -->
+          <div id="export-area" class="px-4 py-3 border-b border-gray-100 hidden bg-white shadow-sm">
+            <div class="flex flex-col gap-2">
+              <div class="flex items-center justify-between text-[10px] sm:text-xs font-medium text-gray-400 uppercase tracking-wider">
+                <span>Xuất file ZIP</span>
+                <span class="text-[9px] text-rose-500 font-semibold normal-case">Tối đa 20 ảnh/lần</span>
+              </div>
+              <div class="flex gap-2">
+                <select id="export-batch-select" class="flex-1 text-xs border border-gray-200 rounded-lg px-2 py-1.5 bg-gray-50 text-gray-700 transition focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500">
+                  <!-- Dynamically populated batches -->
+                </select>
+                <button id="btn-export-zip" class="flex items-center gap-1.5 text-xs font-medium text-white bg-indigo-600 hover:bg-indigo-700 px-3 py-1.5 rounded-lg transition shadow-sm hover:shadow active:scale-95">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-download"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                  Tải ZIP
+                </button>
+              </div>
+            </div>
+          </div>
+
           <!-- List -->
           <div class="flex-1 min-h-[120px] max-h-60 md:max-h-none overflow-y-auto px-3 py-2" id="list-area"></div>
 
@@ -90,8 +100,32 @@
         </div>
 
         <!-- RIGHT PANEL -->
-        <div class="flex-1 flex flex-col items-center justify-center gap-5 p-6 md:p-8 bg-white min-h-[350px] md:min-h-0" id="right-panel">
-          <div class="text-sm text-gray-300">Nhập mã vào bên trái để bắt đầu</div>
+        <div class="w-full md:w-[50%] flex-shrink-0 md:mx-auto flex flex-col gap-6 p-6 md:p-8 bg-white min-h-[350px] md:min-h-0" id="right-panel">
+          <!-- Prefix & Suffix inputs -->
+          <div class="w-full grid grid-cols-2 gap-3 pb-4 border-b border-gray-100 flex-shrink-0">
+            <div>
+              <label class="block text-[10px] sm:text-xs font-semibold text-gray-400 mb-1 uppercase tracking-wider">Prefix</label>
+              <input
+                id="prefix"
+                type="text"
+                placeholder="https://"
+                class="mono w-full text-xs sm:text-sm border border-gray-200 rounded-lg px-3 py-2 bg-white text-gray-700 placeholder-gray-300 transition"
+              />
+            </div>
+            <div>
+              <label class="block text-[10px] sm:text-xs font-semibold text-gray-400 mb-1 uppercase tracking-wider">Suffix</label>
+              <input
+                id="suffix"
+                type="text"
+                placeholder=""
+                class="mono w-full text-xs sm:text-sm border border-gray-200 rounded-lg px-3 py-2 bg-white text-gray-700 placeholder-gray-300 transition"
+              />
+            </div>
+          </div>
+          <!-- Dynamic Content Container -->
+          <div id="right-panel-content" class="flex-1 flex flex-col items-center justify-center gap-5 w-full">
+            <div class="text-sm text-gray-300">Nhập mã vào bên trái để bắt đầu</div>
+          </div>
         </div>
       </div>
 
@@ -208,10 +242,14 @@
 
     const codesEl = document.getElementById('codes');
     const prefixEl = document.getElementById('prefix');
+    const suffixEl = document.getElementById('suffix');
     const listArea = document.getElementById('list-area');
-    const rightPanel = document.getElementById('right-panel');
+    const rightPanel = document.getElementById('right-panel-content');
     const counterTop = document.getElementById('counter-top');
     const csvImportEl = document.getElementById('csv-import');
+    const exportArea = document.getElementById('export-area');
+    const exportBatchSelect = document.getElementById('export-batch-select');
+    const btnExportZip = document.getElementById('btn-export-zip');
 
     // Tab elements
     const tabGenerator = document.getElementById('tab-generator');
@@ -243,6 +281,7 @@
       current = Math.min(current, Math.max(0, items.length - 1));
       renderList();
       renderQR();
+      updateExportBatches();
     }
 
     function renderList() {
@@ -275,8 +314,9 @@
       }
 
       const prefix = prefixEl.value;
+      const suffix = suffixEl.value || '';
       const code = items[current];
-      const text = prefix + code;
+      const text = prefix + code + suffix;
 
       // QR box
       const qrBox = document.createElement('div');
@@ -293,9 +333,59 @@
       codeLabel.className = 'text-center';
       codeLabel.innerHTML = `
         <div class="mono text-xs text-gray-400 mb-1">Mã hiện tại</div>
-        <div class="mono text-sm font-semibold text-gray-700 bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 max-w-xs break-all">${text}</div>
+        <div class="mono text-sm font-semibold text-gray-700 bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 max-w-xs mx-auto break-all">${text}</div>
       `;
       rightPanel.appendChild(codeLabel);
+
+      // Action buttons
+      const actionsDiv = document.createElement('div');
+      actionsDiv.className = 'flex items-center gap-3 mt-2';
+
+      // Download Button
+      const downloadBtn = document.createElement('button');
+      downloadBtn.className = 'flex items-center gap-1.5 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 px-3.5 py-2 rounded-xl transition shadow-sm hover:shadow active:scale-95';
+      downloadBtn.innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-download"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        Tải ảnh QR
+      `;
+      downloadBtn.onclick = () => {
+        const canvas = qrEl.querySelector('canvas');
+        if (canvas) {
+          const url = canvas.toDataURL('image/png');
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `${code.replace(/[/\\?%*:|"<>]/g, '_') || 'qr'}.png`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+        }
+      };
+
+      // Copy Button
+      const copyBtn = document.createElement('button');
+      copyBtn.className = 'flex items-center gap-1.5 text-xs font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 px-3.5 py-2 rounded-xl transition active:scale-95';
+      copyBtn.innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-copy"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+        Copy Mã
+      `;
+      copyBtn.onclick = () => {
+        navigator.clipboard.writeText(text).then(() => {
+          const originalText = copyBtn.innerHTML;
+          copyBtn.innerHTML = `
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-emerald-500"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            <span class="text-emerald-600 font-bold">Đã copy!</span>
+          `;
+          copyBtn.className = 'flex items-center gap-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 px-3.5 py-2 rounded-xl transition';
+          setTimeout(() => {
+            copyBtn.innerHTML = originalText;
+            copyBtn.className = 'flex items-center gap-1.5 text-xs font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 px-3.5 py-2 rounded-xl transition active:scale-95';
+          }, 2000);
+        });
+      };
+
+      actionsDiv.appendChild(downloadBtn);
+      actionsDiv.appendChild(copyBtn);
+      rightPanel.appendChild(actionsDiv);
 
       // Nav buttons
       const nav = document.createElement('div');
@@ -325,6 +415,7 @@
 
     codesEl.addEventListener('input', parse);
     prefixEl.addEventListener('input', () => renderQR());
+    suffixEl.addEventListener('input', () => renderQR());
 
     document.addEventListener('keydown', (e) => {
       if (panelGenerator.classList.contains('hidden')) return; // Disable generator keys on scan tab
@@ -603,6 +694,104 @@
       
       scanAnimationId = requestAnimationFrame(scanCameraFrame);
     }
+
+    function updateExportBatches() {
+      if (items.length === 0) {
+        exportArea.classList.add('hidden');
+        return;
+      }
+
+      exportArea.classList.remove('hidden');
+      exportBatchSelect.innerHTML = '';
+
+      const batchSize = 20;
+      const totalBatches = Math.ceil(items.length / batchSize);
+
+      for (let i = 0; i < totalBatches; i++) {
+        const start = i * batchSize + 1;
+        const end = Math.min((i + 1) * batchSize, items.length);
+        const option = document.createElement('option');
+        option.value = i;
+        option.textContent = `Mã ${start} - ${end}`;
+        exportBatchSelect.appendChild(option);
+      }
+    }
+
+    btnExportZip.addEventListener('click', async () => {
+      if (items.length === 0) return;
+
+      const batchIndex = parseInt(exportBatchSelect.value);
+      if (isNaN(batchIndex)) return;
+
+      const batchSize = 20;
+      const start = batchIndex * batchSize;
+      const end = Math.min(start + batchSize, items.length);
+      const batchItems = items.slice(start, end);
+
+      const originalText = btnExportZip.innerHTML;
+      btnExportZip.disabled = true;
+      btnExportZip.innerHTML = `
+        <svg class="animate-spin h-3.5 w-3.5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <span>Đang tạo...</span>
+      `;
+
+      try {
+        const zip = new JSZip();
+        const prefix = prefixEl.value;
+        const suffix = suffixEl.value || '';
+
+        const tempContainer = document.createElement('div');
+        tempContainer.style.display = 'none';
+        document.body.appendChild(tempContainer);
+
+        for (let i = 0; i < batchItems.length; i++) {
+          const item = batchItems[i];
+          const text = prefix + item + suffix;
+
+          const qrDiv = document.createElement('div');
+          tempContainer.appendChild(qrDiv);
+
+          new QRCode(qrDiv, { text: text, width: 500, height: 500, correctLevel: QRCode.CorrectLevel.M });
+
+          await new Promise(resolve => setTimeout(resolve, 50));
+
+          const canvas = qrDiv.querySelector('canvas');
+          if (canvas) {
+            const dataUrl = canvas.toDataURL('image/png');
+            const base64Data = dataUrl.split(',')[1];
+            const filename = item.replace(/[/\\?%*:|"<>]/g, '_') + '.png';
+            zip.file(filename, base64Data, { base64: true });
+          }
+
+          tempContainer.removeChild(qrDiv);
+        }
+
+        document.body.removeChild(tempContainer);
+
+        const content = await zip.generateAsync({ type: 'blob' });
+        const startNum = start + 1;
+        const endNum = end;
+        const zipFilename = `qr_codes_${startNum}_to_${endNum}.zip`;
+
+        const url = URL.createObjectURL(content);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = zipFilename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      } catch (err) {
+        console.error(err);
+        alert('Có lỗi xảy ra khi tạo file ZIP: ' + err.message);
+      } finally {
+        btnExportZip.disabled = false;
+        btnExportZip.innerHTML = originalText;
+      }
+    });
 
     parse();
   </script>
