@@ -9,82 +9,493 @@
   <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Sora:wght@400;500;600&display=swap');
-    body { font-family: 'Sora', sans-serif; }
-    .mono { font-family: 'JetBrains Mono', monospace; }
+    @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=JetBrains+Mono:wght@400;500&display=swap');
+
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: 'Press Start 2P', monospace;
+      background-color: #5C94FC;
+      background-image:
+        radial-gradient(circle at 15% 20%, rgba(255,255,255,0.15) 0%, transparent 40%),
+        radial-gradient(circle at 85% 80%, rgba(255,255,255,0.10) 0%, transparent 40%);
+      text-transform: uppercase;
+    }
+
+    .mono { font-family: 'JetBrains Mono', monospace; text-transform: none; }
+    .pixel-font { font-family: 'Press Start 2P', monospace; }
+
+    /* ── Main container ── */
+    .mario-container {
+      background: #FEF3C7;
+      border: 4px solid #111827;
+      box-shadow: 6px 6px 0px #111827;
+    }
+
+    /* ── Header bar ── */
+    .mario-header {
+      background: #111827;
+      border-bottom: 4px solid #C84B0C;
+    }
+
+    /* ── Tab buttons ── */
+    .tab-btn {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 10px;
+      padding: 6px 10px;
+      border: 2px solid #4B5563;
+      background: #374151;
+      color: #9CA3AF;
+      cursor: pointer;
+      transition: none;
+      image-rendering: pixelated;
+    }
+    .tab-btn:hover { background: #4B5563; color: #D1D5DB; }
+    .tab-btn.tab-active {
+      background: #FBD000;
+      color: #111827;
+      border: 2px solid #111827;
+      box-shadow: 2px 2px 0px #111827;
+    }
+
+    /* ── Section label bars ── */
+    .section-label {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 10px;
+      text-transform: uppercase;
+      background: #C84B0C;
+      color: #FEF3C7;
+      padding: 4px 8px;
+      letter-spacing: 0.05em;
+    }
+
+    /* ── Pixel buttons ── */
+    .px-btn {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 10px;
+      border: 3px solid #111827;
+      box-shadow: 3px 3px 0px #111827;
+      cursor: pointer;
+      padding: 8px 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: none;
+      text-decoration: none;
+    }
+    .px-btn:active {
+      transform: translate(3px, 3px);
+      box-shadow: none;
+    }
+    .px-btn-red {
+      background: #E52521;
+      color: #fff;
+    }
+    .px-btn-red:hover { background: #c91e1b; }
+    .px-btn-yellow {
+      background: #FBD000;
+      color: #111827;
+    }
+    .px-btn-yellow:hover { background: #e6bc00; }
+    .px-btn-green {
+      background: #43B047;
+      color: #fff;
+    }
+    .px-btn-green:hover { background: #389c3c; }
+    .px-btn-gray {
+      background: #9CA3AF;
+      color: #111827;
+    }
+    .px-btn-gray:hover { background: #8b939f; }
+    .px-btn-indigo {
+      background: #4F46E5;
+      color: #fff;
+    }
+    .px-btn-indigo:hover { background: #4338ca; }
+
+    /* disabled nav state */
+    .px-btn-muted {
+      background: #E5E7EB;
+      color: #9CA3AF;
+      border: 3px solid #D1D5DB;
+      box-shadow: none;
+      cursor: not-allowed;
+    }
+    .px-btn-muted:active { transform: none; }
+
+    /* ── Input fields ── */
+    textarea, input[type="text"], select {
+      font-family: 'JetBrains Mono', monospace;
+      border: 2px solid #111827;
+      box-shadow: 2px 2px 0px #111827;
+      border-radius: 0 !important;
+      background: #fff;
+    }
+    textarea:focus, input[type="text"]:focus, select:focus {
+      outline: none;
+      box-shadow: 2px 2px 0px #111827;
+    }
+
+    /* ── Left panel ── */
+    .left-panel {
+      background: #FDE68A;
+      border-right: 4px solid #111827;
+    }
+
+    /* ── Code list items ── */
+    .code-item {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      border: 2px solid transparent;
+      border-radius: 0;
+      padding: 6px 10px;
+      cursor: pointer;
+      margin-bottom: 3px;
+      color: #374151;
+      transition: none;
+    }
+    .code-item:hover {
+      border-color: #FBD000;
+      background: #FEF9C3;
+    }
+    .code-item.active {
+      background: #FBD000;
+      border: 2px solid #111827;
+      box-shadow: 2px 2px 0px #111827;
+      font-weight: 500;
+      color: #111827;
+    }
+
+    /* ── QR canvas box ── */
+    .qr-box {
+      background: #fff;
+      border: 4px solid #111827;
+      box-shadow: 5px 5px 0px #111827;
+      padding: 20px;
+    }
     #qr-canvas img, #qr-canvas canvas { display: block; }
-    .code-item.active { background: #fff; border-color: #d1d5db; font-weight: 500; }
-    textarea:focus, input:focus { outline: none; box-shadow: 0 0 0 2px #6366f120; }
+
+    /* ── Right panel ── */
+    .right-panel-bg { background: #FEF9E7; }
+
+    /* ── Dividers ── */
+    .px-divider { border-color: #111827; border-top: 2px solid #111827; }
+    .px-border-b { border-bottom: 2px solid #111827; }
+    .px-border-t { border-top: 2px solid #111827; }
+    .px-border-r { border-right: 2px solid #111827; }
+
+    /* ── Keyboard hint ── */
+    .kb-hint {
+      background: #111827;
+      color: #FBD000;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 10px;
+      padding: 6px 10px;
+    }
+
+    /* ── Scanner drop zone ── */
+    .drop-zone-mario {
+      border: 3px dashed #43B047;
+      background: #fff;
+      border-radius: 0;
+    }
+    .drop-zone-mario:hover {
+      border-color: #2d8a31;
+      background: #f0fff1;
+    }
+    .drop-zone-inner {
+      border: 2px solid #111827;
+      box-shadow: 2px 2px 0px #111827;
+      background: #E8F5E9;
+      padding: 6px;
+    }
+
+    /* ── Scan result image preview ── */
+    .scan-img-preview {
+      border: 4px solid #111827;
+      box-shadow: 4px 4px 0px #111827;
+    }
+
+    /* ── Scan status badge ── */
+    .scan-badge-success {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 10px;
+      color: #166534;
+      border: 2px solid #166534;
+      background: #dcfce7;
+      padding: 3px 6px;
+      text-transform: uppercase;
+    }
+    .scan-badge-error {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 10px;
+      color: #991b1b;
+      border: 2px solid #991b1b;
+      background: #fee2e2;
+      padding: 3px 6px;
+      text-transform: uppercase;
+    }
+
+    /* ── Scanner placeholder "?" box ── */
+    .scan-placeholder-box {
+      width: 64px;
+      height: 64px;
+      border: 4px solid #111827;
+      box-shadow: 4px 4px 0px #111827;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 24px;
+      color: #C84B0C;
+      background: #FDE68A;
+    }
+
+    /* ── Empty state text ── */
+    .empty-state-text {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 11px;
+      color: #C84B0C;
+      text-align: center;
+    }
+
+    /* ── Counter top ── */
+    .counter-top {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 12px;
+      color: #FBD000;
+    }
+
+    /* ── Nav counter ── */
+    .nav-counter {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 11px;
+      color: #374151;
+      width: 120px;
+      text-align: center;
+    }
+
+    /* ── Upload CSV label button ── */
+    .upload-csv-btn {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 9px;
+      border: 2px solid #111827;
+      box-shadow: 2px 2px 0px #111827;
+      background: #FBD000;
+      color: #111827;
+      padding: 5px 8px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: none;
+    }
+    .upload-csv-btn:hover { background: #e6bc00; }
+    .upload-csv-btn:active { transform: translate(2px,2px); box-shadow: none; }
+
+    /* ── Export area ── */
+    .export-area-bg {
+      background: #FEF3C7;
+      border-bottom: 2px solid #111827;
+    }
+
+    /* ── Camera button ── */
+    #btn-toggle-camera {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 8px;
+    }
+
+    /* ── Scanner overlay ── */
     @keyframes scan {
       0%, 100% { transform: translateY(0); }
       50% { transform: translateY(188px); }
     }
-    .scanner-line {
-      animation: scan 2.5s ease-in-out infinite;
+    .scanner-line { animation: scan 2.5s ease-in-out infinite; }
+
+    /* ── Code label box ── */
+    .code-label-box {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      font-weight: 600;
+      color: #111827;
+      background: #FDE68A;
+      border: 2px solid #111827;
+      box-shadow: 2px 2px 0px #111827;
+      padding: 8px 16px;
+      max-width: 100%;
+      word-break: break-all;
+      text-align: center;
+    }
+    .code-label-title {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 10px;
+      color: #6B7280;
+      margin-bottom: 4px;
+    }
+
+    /* ── Open link button ── */
+    #btn-open-link {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 8px;
+      border: 3px solid #111827;
+      box-shadow: 3px 3px 0px #111827;
+      background: #fff;
+      color: #111827;
+      padding: 8px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: none;
+      width: 100%;
+    }
+    #btn-open-link:active { transform: translate(3px,3px); box-shadow: none; }
+    #btn-open-link:hover { background: #F3F4F6; }
+
+    /* ── Clear scan button ── */
+    #btn-clear-scan {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 8px;
+      border: 3px solid #111827;
+      box-shadow: 3px 3px 0px #111827;
+      background: #E5E7EB;
+      color: #374151;
+      padding: 8px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      cursor: pointer;
+      width: 100%;
+      transition: none;
+    }
+    #btn-clear-scan:hover { background: #D1D5DB; }
+    #btn-clear-scan:active { transform: translate(3px,3px); box-shadow: none; }
+
+    /* ── Scanner section label ── */
+    .scan-section-label {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 10px;
+      color: #374151;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    /* ── Scanned image label ── */
+    .scan-img-label {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 10px;
+      color: #6B7280;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    /* ── Decoded content label ── */
+    .scan-decode-label {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 10px;
+      color: #6B7280;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    /* ── Camera close button ── */
+    #btn-close-camera {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: rgba(17,24,39,0.85);
+      color: #fff;
+      border: 2px solid #fff;
+      padding: 6px;
+      cursor: pointer;
+    }
+    #btn-close-camera:hover { background: #111827; }
+
+    /* ── Divider "or" ── */
+    .px-divider-line { background: #111827; height: 2px; flex: 1; }
+    .px-divider-or {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 10px;
+      color: #374151;
+      text-transform: uppercase;
+    }
+
+    /* ── Max batch warning ── */
+    .batch-warn {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 10px;
+      color: #E52521;
+    }
+
+    /* ── Export section label ── */
+    .export-label {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 10px;
+      color: #374151;
+      text-transform: uppercase;
     }
   </style>
 </head>
-<body class="bg-gray-50 min-h-screen flex items-center justify-center p-0 sm:p-4">
+<body class="min-h-screen flex items-center justify-center p-0 sm:p-4">
 
-  <div class="w-full max-w-7xl bg-white rounded-none sm:rounded-2xl shadow-sm border-0 sm:border border-gray-200 overflow-hidden flex flex-col h-screen sm:h-[90vh] sm:max-h-[960px]">
+  <div class="mario-container w-full max-w-7xl overflow-hidden flex flex-col h-screen sm:h-[90vh] sm:max-h-[960px]">
 
     <!-- Header -->
-    <div class="px-4 py-3 sm:px-6 sm:py-4 border-b border-gray-100 flex items-center justify-between flex-shrink-0">
+    <div class="mario-header px-4 py-3 sm:px-6 sm:py-4 flex items-center justify-between flex-shrink-0">
       <div class="flex items-center gap-4 sm:gap-6">
-        <div class="flex items-center gap-2">
-          <div class="w-2.5 h-2.5 rounded-full bg-indigo-500"></div>
-          <h1 class="text-xs sm:text-sm font-semibold text-gray-700 tracking-wide uppercase">QR Tool</h1>
+        <div class="flex items-center gap-3">
+          <h1 class="pixel-font text-xs sm:text-sm text-white tracking-wide">QR TOOL</h1>
         </div>
         <!-- Tab Navigation -->
-        <div class="flex gap-0.5 sm:gap-1 bg-gray-100 p-0.5 sm:p-1 rounded-lg text-[11px] sm:text-xs font-medium">
-          <button id="tab-generator" class="px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-md bg-white text-gray-800 shadow-sm transition">Tạo QR</button>
-          <button id="tab-scanner" class="px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-md text-gray-500 hover:text-gray-800 transition">Quét QR</button>
+        <div class="flex gap-1">
+          <button id="tab-generator" class="tab-btn tab-active">Generate QR</button>
+          <button id="tab-scanner" class="tab-btn">Scan QR</button>
         </div>
       </div>
-      <span id="counter-top" class="mono text-xs text-gray-400"></span>
+      <span id="counter-top" class="counter-top"></span>
     </div>
 
     <!-- MAIN CONTAINER -->
     <div class="flex-1 flex flex-col overflow-y-auto md:overflow-hidden relative">
-      
+
       <!-- PANEL GENERATOR -->
       <div id="panel-generator" class="flex flex-col md:flex-row flex-1 md:overflow-hidden">
         <!-- LEFT PANEL -->
-        <div class="w-full md:w-[40%] flex-shrink-0 border-b md:border-b-0 md:border-r border-gray-100 flex flex-col bg-gray-50">
-
+        <div class="left-panel w-full md:w-[40%] flex-shrink-0 flex flex-col">
 
           <!-- Codes textarea -->
-          <div class="px-4 pt-3 pb-3 border-b border-gray-100">
+          <div class="px-4 pt-3 pb-3 px-border-b">
             <div class="flex items-center justify-between mb-2">
-              <label class="block text-[10px] sm:text-xs font-medium text-gray-400 uppercase tracking-wider">Danh sách mã</label>
-              <label title="Tải lên file CSV" class="cursor-pointer flex items-center gap-1.5 text-xs sm:text-sm font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-md transition">
+              <span class="section-label">Code List</span>
+              <label title="Upload CSV file" class="upload-csv-btn cursor-pointer">
                 <input type="file" id="csv-import" accept=".csv,.txt" class="hidden" />
-                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-upload text-indigo-500"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
                 Upload CSV
               </label>
             </div>
             <textarea
               id="codes"
               placeholder="ABC123&#10;DEF456&#10;GHI789&#10;..."
-              class="mono w-full text-xs sm:text-sm border border-gray-200 rounded-lg px-3 py-2 bg-white text-gray-700 placeholder-gray-300 resize-none transition"
+              class="mono w-full text-xs sm:text-sm px-3 py-2 text-gray-700 placeholder-gray-300 resize-none"
               rows="5"
             ></textarea>
           </div>
 
           <!-- Export Area -->
-          <div id="export-area" class="px-4 py-3 border-b border-gray-100 hidden bg-white shadow-sm">
+          <div id="export-area" class="export-area-bg px-4 py-3 px-border-b hidden">
             <div class="flex flex-col gap-2">
-              <div class="flex items-center justify-between text-[10px] sm:text-xs font-medium text-gray-400 uppercase tracking-wider">
-                <span>Xuất file ZIP</span>
-                <span class="text-[9px] text-rose-500 font-semibold normal-case">Tối đa 20 ảnh/lần</span>
+              <div class="flex items-center justify-between">
+                <span class="export-label">Export ZIP</span>
+                <span class="batch-warn">Max 20 images/batch</span>
               </div>
               <div class="flex gap-2">
-                <select id="export-batch-select" class="flex-1 text-xs border border-gray-200 rounded-lg px-2 py-1.5 bg-gray-50 text-gray-700 transition focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500">
+                <select id="export-batch-select" class="flex-1 text-xs px-2 py-1.5 text-gray-700">
                   <!-- Dynamically populated batches -->
                 </select>
-                <button id="btn-export-zip" class="flex items-center gap-1.5 text-xs font-medium text-white bg-indigo-600 hover:bg-indigo-700 px-3 py-1.5 rounded-lg transition shadow-sm hover:shadow active:scale-95">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-download"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                  Tải ZIP
+                <button id="btn-export-zip" class="px-btn px-btn-indigo text-xs">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                  Download ZIP
                 </button>
               </div>
             </div>
@@ -94,89 +505,88 @@
           <div class="flex-1 min-h-[120px] max-h-60 md:max-h-none overflow-y-auto px-3 py-2" id="list-area"></div>
 
           <!-- Keyboard hint -->
-          <div class="px-4 py-2 border-t border-gray-100 hidden md:block">
-            <p class="text-xs text-gray-300 mono">← → hoặc Enter để chuyển</p>
+          <div class="kb-hint px-border-t hidden md:block">
+            ← → or Enter to navigate
           </div>
         </div>
 
         <!-- RIGHT PANEL -->
-        <div class="w-full md:w-[50%] flex-shrink-0 md:mx-auto flex flex-col gap-6 p-6 md:p-8 bg-white min-h-[350px] md:min-h-0" id="right-panel">
+        <div class="right-panel-bg w-full md:w-[60%] flex-shrink-0 flex flex-col gap-6 p-6 md:p-8 min-h-[350px] md:min-h-0" id="right-panel">
           <!-- Prefix & Suffix inputs -->
-          <div class="w-full grid grid-cols-2 gap-3 pb-4 border-b border-gray-100 flex-shrink-0">
+          <div class="w-full grid grid-cols-2 gap-3 pb-4 px-border-b flex-shrink-0">
             <div>
-              <label class="block text-[10px] sm:text-xs font-semibold text-gray-400 mb-1 uppercase tracking-wider">Prefix</label>
+              <div class="section-label mb-2">Prefix</div>
               <input
                 id="prefix"
                 type="text"
                 placeholder="https://"
-                class="mono w-full text-xs sm:text-sm border border-gray-200 rounded-lg px-3 py-2 bg-white text-gray-700 placeholder-gray-300 transition"
+                class="mono w-full text-xs sm:text-sm px-3 py-2 text-gray-700 placeholder-gray-300"
               />
             </div>
             <div>
-              <label class="block text-[10px] sm:text-xs font-semibold text-gray-400 mb-1 uppercase tracking-wider">Suffix</label>
+              <div class="section-label mb-2">Suffix</div>
               <input
                 id="suffix"
                 type="text"
                 placeholder=""
-                class="mono w-full text-xs sm:text-sm border border-gray-200 rounded-lg px-3 py-2 bg-white text-gray-700 placeholder-gray-300 transition"
+                class="mono w-full text-xs sm:text-sm px-3 py-2 text-gray-700 placeholder-gray-300"
               />
             </div>
           </div>
           <!-- Dynamic Content Container -->
           <div id="right-panel-content" class="flex-1 flex flex-col items-center justify-center gap-5 w-full">
-            <div class="text-sm text-gray-300">Nhập mã vào bên trái để bắt đầu</div>
+            <div class="empty-state-text">Enter codes on the left to start</div>
           </div>
         </div>
       </div>
 
       <!-- PANEL SCANNER -->
-      <div id="panel-scanner" class="hidden flex-1 flex flex-col lg:flex-row lg:overflow-hidden bg-white">
+      <div id="panel-scanner" class="hidden flex-1 flex flex-col lg:flex-row lg:overflow-hidden" style="background:#FEF9E7;">
         <!-- LEFT SCAN PANEL: Upload/Drag Area -->
-        <div class="flex-1 p-4 md:p-6 flex flex-col justify-center items-center bg-gray-50 border-b lg:border-b-0 lg:border-r border-gray-100 min-h-[320px] lg:min-h-0 py-8 lg:py-0">
+        <div class="flex-1 p-4 md:p-6 flex flex-col justify-center items-center border-b lg:border-b-0 lg:border-r-2 border-black min-h-[320px] lg:min-h-0 py-8 lg:py-0" style="background:#FDE68A;">
           <div class="w-full max-w-lg flex flex-col gap-4 md:gap-5">
-            <h2 class="text-[10px] sm:text-xs font-semibold text-gray-400 uppercase tracking-wider">Tải lên hoặc Quét mã QR</h2>
-            
+            <div class="section-label">Upload or Scan QR Code</div>
+
             <!-- Drag & Drop Zone -->
-            <div id="drop-zone" class="border-2 border-dashed border-gray-200 hover:border-indigo-500 bg-white hover:bg-indigo-50/10 rounded-2xl p-6 sm:p-8 flex flex-col items-center justify-center gap-3 sm:gap-4 cursor-pointer transition-all duration-200 min-h-[180px] sm:min-h-[280px] text-center relative group shadow-sm hover:shadow-md">
+            <div id="drop-zone" class="drop-zone-mario p-6 sm:p-8 flex flex-col items-center justify-center gap-3 sm:gap-4 cursor-pointer min-h-[180px] sm:min-h-[280px] text-center relative">
               <input type="file" id="scan-file" accept="image/*" class="hidden" />
               <!-- Icon -->
-              <div class="p-3 sm:p-4 bg-indigo-50 rounded-2xl text-indigo-500 group-hover:scale-105 transition duration-200">
-                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="sm:w-8 sm:h-8"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect><line x1="7" y1="17" x2="7" y2="17.01"></line><line x1="17" y1="17" x2="17" y2="17.01"></line><line x1="17" y1="7" x2="17" y2="7.01"></line><line x1="7" y1="7" x2="7" y2="7.01"></line></svg>
+              <div class="drop-zone-inner">
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#43B047" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect><line x1="7" y1="17" x2="7" y2="17.01"></line><line x1="17" y1="17" x2="17" y2="17.01"></line><line x1="17" y1="7" x2="17" y2="7.01"></line><line x1="7" y1="7" x2="7" y2="7.01"></line></svg>
               </div>
               <div class="flex flex-col gap-1">
-                <span class="text-xs sm:text-sm font-medium text-gray-700">Kéo thả ảnh QR vào đây</span>
-                <span class="text-[11px] sm:text-xs text-gray-400">hoặc click để chọn tệp từ thiết bị</span>
+                <span class="pixel-font text-gray-700">Drag & drop QR image here</span>
+                <span class="mono text-[11px] text-gray-500">or click to select file from device</span>
               </div>
-              <span class="text-[10px] text-gray-300 mono mt-1 hidden sm:inline-block">Hỗ trợ Ctrl + V để dán ảnh chụp màn hình</span>
+              <span class="mono text-[10px] text-gray-400 mt-1 hidden sm:inline-block">Supports Ctrl + V to paste screenshot</span>
             </div>
-            
+
             <!-- Divider -->
-            <div class="flex items-center justify-center gap-4 text-[10px] sm:text-xs font-semibold text-gray-400 uppercase tracking-wider my-1">
-              <div class="h-[1px] bg-gray-200 flex-1"></div>
-              <span>hoặc</span>
-              <div class="h-[1px] bg-gray-200 flex-1"></div>
+            <div class="flex items-center justify-center gap-4 my-1">
+              <div class="px-divider-line"></div>
+              <span class="px-divider-or">or</span>
+              <div class="px-divider-line"></div>
             </div>
 
             <!-- Camera option -->
             <div class="flex justify-center">
-              <button id="btn-toggle-camera" class="flex items-center gap-2 text-xs sm:text-sm font-medium text-indigo-600 hover:text-indigo-700 bg-indigo-50 hover:bg-indigo-100/85 px-4 py-2.5 sm:px-5 sm:py-3 rounded-xl transition shadow-sm">
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="sm:w-4 sm:h-4"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
-                Quét bằng Camera
+              <button id="btn-toggle-camera" class="px-btn px-btn-green">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+                Scan with Camera
               </button>
             </div>
-            
+
             <!-- Camera View Container (Hidden by default) -->
-            <div id="camera-container" class="hidden relative rounded-2xl overflow-hidden border border-gray-200 bg-black aspect-video flex items-center justify-center shadow-lg">
+            <div id="camera-container" class="hidden relative overflow-hidden border-2 border-black bg-black aspect-video flex items-center justify-center" style="box-shadow:4px 4px 0 #111827;">
               <video id="webcam" class="w-full h-full object-cover" playsinline></video>
               <canvas id="camera-canvas" class="hidden"></canvas>
               <!-- Scanner overlay lines -->
               <div class="absolute inset-0 pointer-events-none flex items-center justify-center">
-                <div class="w-48 h-48 border-2 border-indigo-500 rounded-xl relative overflow-hidden shadow-[0_0_0_9999px_rgba(0,0,0,0.5)]">
-                  <div class="absolute top-0 inset-x-0 h-0.5 bg-indigo-500 shadow-[0_0_8px_#6366f1] scanner-line"></div>
+                <div class="w-48 h-48 border-2 border-green-400 relative overflow-hidden shadow-[0_0_0_9999px_rgba(0,0,0,0.5)]">
+                  <div class="absolute top-0 inset-x-0 h-0.5 bg-green-400 shadow-[0_0_8px_#4ade80] scanner-line"></div>
                 </div>
               </div>
-              <!-- Close button for camera -->
-              <button id="btn-close-camera" class="absolute top-3 right-3 bg-gray-900/70 hover:bg-gray-900 text-white p-2.5 rounded-full transition shadow-md">
+              <button id="btn-close-camera">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
               </button>
             </div>
@@ -184,47 +594,45 @@
         </div>
 
         <!-- RIGHT SCAN PANEL: Results -->
-        <div class="w-full lg:w-[450px] p-4 md:p-6 flex flex-col justify-center items-center bg-white min-h-[280px] lg:min-h-0 py-8 lg:py-0">
+        <div class="w-full lg:w-[450px] p-4 md:p-6 flex flex-col justify-center items-center min-h-[280px] lg:min-h-0 py-8 lg:py-0" style="background:#FEF9E7;">
           <div class="w-full max-w-sm flex flex-col gap-4 sm:gap-6" id="scan-result-container">
             <!-- Initial state: No QR scanned -->
-            <div id="scan-placeholder" class="text-center py-10 flex flex-col items-center gap-3">
-              <div class="w-12 h-12 rounded-full bg-gray-50 flex items-center justify-center text-gray-300">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
-              </div>
-              <p class="text-xs sm:text-sm text-gray-400">Chưa có kết quả quét. Hãy tải lên hoặc sử dụng camera.</p>
+            <div id="scan-placeholder" class="text-center py-10 flex flex-col items-center gap-4">
+              <div class="scan-placeholder-box">?</div>
+              <p class="empty-state-text">No scan result yet.<br/>Upload an image or use camera.</p>
             </div>
 
             <!-- Active state: Result found or error -->
             <div id="scan-content" class="hidden flex flex-col gap-4 sm:gap-5 w-full">
               <!-- Image preview -->
               <div class="flex flex-col items-center gap-2">
-                <span class="text-[9px] sm:text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Ảnh đã quét</span>
-                <div class="border border-gray-200 rounded-xl overflow-hidden max-h-32 max-w-[160px] sm:max-h-36 sm:max-w-[180px] shadow-sm bg-gray-50 flex items-center justify-center p-1">
-                  <img id="scan-preview" class="object-contain max-h-28 sm:max-h-32 max-w-full rounded-lg" alt="QR Preview" />
+                <span class="scan-img-label">Scanned Image</span>
+                <div class="scan-img-preview max-h-32 max-w-[160px] sm:max-h-36 sm:max-w-[180px] bg-gray-50 flex items-center justify-center p-1 overflow-hidden">
+                  <img id="scan-preview" class="object-contain max-h-28 sm:max-h-32 max-w-full" alt="QR Preview" />
                 </div>
               </div>
 
               <!-- Result field -->
               <div class="flex flex-col gap-1.5">
                 <div class="flex items-center justify-between">
-                  <span class="text-[10px] sm:text-xs font-medium text-gray-400 uppercase tracking-wider">Nội dung giải mã</span>
-                  <span id="scan-status" class="text-[9px] sm:text-[10px] font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full uppercase">Thành công</span>
+                  <span class="scan-decode-label">Decoded Content</span>
+                  <span id="scan-status" class="scan-badge-success">Success</span>
                 </div>
-                <textarea id="scan-text-result" readonly class="mono w-full text-xs sm:text-sm border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 text-gray-700 resize-none font-medium h-28 sm:h-32 focus:border-indigo-500 transition-colors"></textarea>
+                <textarea id="scan-text-result" readonly class="mono w-full text-xs sm:text-sm px-3 py-2 bg-gray-50 text-gray-700 resize-none font-medium h-28 sm:h-32"></textarea>
               </div>
 
               <!-- Action buttons -->
               <div class="flex flex-col gap-2">
-                <button id="btn-copy-result" class="w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-xs sm:text-sm py-2 sm:py-2.5 px-4 rounded-xl shadow-sm hover:shadow transition-all duration-150">
+                <button id="btn-copy-result" class="px-btn px-btn-red w-full justify-center text-xs sm:text-sm py-2 sm:py-2.5 px-4">
                   <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-copy sm:w-4 sm:h-4"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-                  <span>Copy nội dung</span>
+                  <span>Copy Content</span>
                 </button>
-                <a id="btn-open-link" href="#" target="_blank" class="hidden w-full flex items-center justify-center gap-2 bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 font-medium text-xs sm:text-sm py-2 sm:py-2.5 px-4 rounded-xl transition shadow-sm">
+                <a id="btn-open-link" href="#" target="_blank" class="hidden">
                   <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="sm:w-4 sm:h-4"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
-                  <span>Mở liên kết</span>
+                  <span>Open Link</span>
                 </a>
-                <button id="btn-clear-scan" class="w-full flex items-center justify-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-600 font-medium text-xs sm:text-sm py-2 px-4 rounded-xl transition">
-                  Quét ảnh khác
+                <button id="btn-clear-scan">
+                  Scan Another Image
                 </button>
               </div>
             </div>
@@ -267,7 +675,7 @@
         const lines = text.split(/\r?\n/)
           .map(line => line.split(',')[0].replace(/^"|"$/g, '').trim())
           .filter(Boolean);
-        
+
         codesEl.value = lines.join('\n');
         parse();
         csvImportEl.value = ''; // Reset for consecutive uploads
@@ -288,9 +696,9 @@
       listArea.innerHTML = '';
       items.forEach((code, i) => {
         const div = document.createElement('div');
-        div.className = 'code-item mono flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer text-sm border border-transparent text-gray-600 hover:bg-white hover:border-gray-200 transition mb-1 truncate' + (i === current ? ' active' : '');
+        div.className = 'code-item mono flex items-center gap-2 cursor-pointer truncate' + (i === current ? ' active' : '');
         div.title = code;
-        div.innerHTML = `<span class="text-gray-300 w-5 text-right flex-shrink-0">${i + 1}</span><span class="truncate">${code}</span>`;
+        div.innerHTML = `<span class="text-gray-400 w-5 text-right flex-shrink-0 mono" style="font-size:11px;">${i + 1}</span><span class="truncate">${code}</span>`;
         div.onclick = () => { current = i; renderList(); renderQR(); };
         listArea.appendChild(div);
       });
@@ -302,7 +710,7 @@
       rightPanel.innerHTML = '';
 
       if (items.length === 0) {
-        rightPanel.innerHTML = '<div class="text-sm text-gray-300">Nhập mã vào bên trái để bắt đầu</div>';
+        rightPanel.innerHTML = '<div class="empty-state-text">Enter codes on the left to start</div>';
         if (panelScanner.classList.contains('hidden')) {
           counterTop.textContent = '';
         }
@@ -310,7 +718,7 @@
       }
 
       if (panelScanner.classList.contains('hidden')) {
-        counterTop.textContent = `${current + 1} / ${items.length}`;
+        counterTop.textContent = `🪙 ${current + 1} / ${items.length}`;
       }
 
       const prefix = prefixEl.value;
@@ -320,7 +728,7 @@
 
       // QR box
       const qrBox = document.createElement('div');
-      qrBox.className = 'bg-white border border-gray-100 rounded-2xl p-5 shadow-sm';
+      qrBox.className = 'qr-box';
       const qrEl = document.createElement('div');
       qrEl.id = 'qr-canvas';
       qrBox.appendChild(qrEl);
@@ -332,8 +740,8 @@
       const codeLabel = document.createElement('div');
       codeLabel.className = 'text-center';
       codeLabel.innerHTML = `
-        <div class="mono text-xs text-gray-400 mb-1">Mã hiện tại</div>
-        <div class="mono text-sm font-semibold text-gray-700 bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 max-w-xs mx-auto break-all">${text}</div>
+        <div class="code-label-title">Current Code</div>
+        <div class="code-label-box mx-auto max-w-xs">${text}</div>
       `;
       rightPanel.appendChild(codeLabel);
 
@@ -343,10 +751,10 @@
 
       // Download Button
       const downloadBtn = document.createElement('button');
-      downloadBtn.className = 'flex items-center gap-1.5 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 px-3.5 py-2 rounded-xl transition shadow-sm hover:shadow active:scale-95';
+      downloadBtn.className = 'px-btn px-btn-red';
       downloadBtn.innerHTML = `
-        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-download"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-        Tải ảnh QR
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        Download QR
       `;
       downloadBtn.onclick = () => {
         const canvas = qrEl.querySelector('canvas');
@@ -363,22 +771,22 @@
 
       // Copy Button
       const copyBtn = document.createElement('button');
-      copyBtn.className = 'flex items-center gap-1.5 text-xs font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 px-3.5 py-2 rounded-xl transition active:scale-95';
+      copyBtn.className = 'px-btn px-btn-yellow';
       copyBtn.innerHTML = `
-        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-copy"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-        Copy Mã
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+        Copy Code
       `;
       copyBtn.onclick = () => {
         navigator.clipboard.writeText(text).then(() => {
           const originalText = copyBtn.innerHTML;
           copyBtn.innerHTML = `
-            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-emerald-500"><polyline points="20 6 9 17 4 12"></polyline></svg>
-            <span class="text-emerald-600 font-bold">Đã copy!</span>
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            <span>Copied!</span>
           `;
-          copyBtn.className = 'flex items-center gap-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 px-3.5 py-2 rounded-xl transition';
+          copyBtn.className = 'px-btn px-btn-green';
           setTimeout(() => {
             copyBtn.innerHTML = originalText;
-            copyBtn.className = 'flex items-center gap-1.5 text-xs font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 px-3.5 py-2 rounded-xl transition active:scale-95';
+            copyBtn.className = 'px-btn px-btn-yellow';
           }, 2000);
         });
       };
@@ -394,17 +802,21 @@
       const prev = document.createElement('button');
       prev.innerHTML = '← Prev';
       prev.disabled = current === 0;
-      prev.className = `mono text-sm px-4 py-2 rounded-lg border transition ${current === 0 ? 'border-gray-100 text-gray-300 cursor-not-allowed' : 'border-gray-200 text-gray-600 hover:bg-gray-50 cursor-pointer'}`;
+      prev.className = current === 0
+        ? 'px-btn px-btn-muted'
+        : 'px-btn px-btn-gray';
       prev.onclick = () => { if (current > 0) { current--; renderList(); renderQR(); } };
 
       const counter = document.createElement('div');
-      counter.className = 'mono text-xs text-gray-400 w-32 text-center';
-      counter.textContent = `${current + 1} / ${items.length}`;
+      counter.className = 'nav-counter';
+      counter.textContent = `🪙 ${current + 1} / ${items.length}`;
 
       const next = document.createElement('button');
       next.innerHTML = 'Next →';
       next.disabled = current === items.length - 1;
-      next.className = `mono text-sm px-4 py-2 rounded-lg border transition ${current === items.length - 1 ? 'border-gray-100 text-gray-300 cursor-not-allowed' : 'border-indigo-200 text-indigo-600 hover:bg-indigo-50 cursor-pointer'}`;
+      next.className = current === items.length - 1
+        ? 'px-btn px-btn-muted'
+        : 'px-btn px-btn-red';
       next.onclick = () => { if (current < items.length - 1) { current++; renderList(); renderQR(); } };
 
       nav.appendChild(prev);
@@ -431,16 +843,14 @@
 
     // Tab selection logic
     tabGenerator.addEventListener('click', () => {
-      tabGenerator.classList.add('bg-white', 'text-gray-800', 'shadow-sm');
-      tabGenerator.classList.remove('text-gray-500');
-      tabScanner.classList.remove('bg-white', 'text-gray-800', 'shadow-sm');
-      tabScanner.classList.add('text-gray-500');
-      
+      tabGenerator.classList.add('tab-active');
+      tabScanner.classList.remove('tab-active');
+
       panelGenerator.classList.remove('hidden');
       panelScanner.classList.add('hidden');
-      
+
       if (items.length > 0) {
-        counterTop.textContent = `${current + 1} / ${items.length}`;
+        counterTop.textContent = `🪙 ${current + 1} / ${items.length}`;
       } else {
         counterTop.textContent = '';
       }
@@ -449,14 +859,12 @@
     });
 
     tabScanner.addEventListener('click', () => {
-      tabScanner.classList.add('bg-white', 'text-gray-800', 'shadow-sm');
-      tabScanner.classList.remove('text-gray-500');
-      tabGenerator.classList.remove('bg-white', 'text-gray-800', 'shadow-sm');
-      tabGenerator.classList.add('text-gray-500');
-      
+      tabScanner.classList.add('tab-active');
+      tabGenerator.classList.remove('tab-active');
+
       panelScanner.classList.remove('hidden');
       panelGenerator.classList.add('hidden');
-      
+
       counterTop.style.visibility = 'hidden';
     });
 
@@ -537,7 +945,7 @@
       reader.onload = (e) => {
         const dataUrl = e.target.result;
         scanPreview.src = dataUrl;
-        
+
         const img = new Image();
         img.onload = () => {
           const canvas = document.createElement('canvas');
@@ -545,21 +953,21 @@
           canvas.width = img.naturalWidth;
           canvas.height = img.naturalHeight;
           ctx.drawImage(img, 0, 0);
-          
+
           try {
             const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
             const code = jsQR(imageData.data, imageData.width, imageData.height);
             if (code) {
               showScanResult(code.data, true);
             } else {
-              showScanResult('Không tìm thấy mã QR trong ảnh này. Vui lòng thử lại với một ảnh QR rõ nét hơn.', false);
+              showScanResult('No QR code found in this image. Please try with a clearer QR image.', false);
             }
           } catch (err) {
-            showScanResult('Đã xảy ra lỗi khi phân tích ảnh: ' + err.message, false);
+            showScanResult('Error analyzing image: ' + err.message, false);
           }
         };
         img.onerror = () => {
-          showScanResult('Tải file ảnh thất bại. Định dạng file có thể không hợp lệ.', false);
+          showScanResult('Failed to load image file. File format may be invalid.', false);
         };
         img.src = dataUrl;
       };
@@ -568,15 +976,15 @@
 
     function showScanResult(text, success) {
       stopCamera();
-      
+
       scanPlaceholder.classList.add('hidden');
       scanContent.classList.remove('hidden');
       scanTextResult.value = text;
-      
+
       if (success) {
-        scanStatus.textContent = 'Thành công';
-        scanStatus.className = 'text-[10px] font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full uppercase';
-        
+        scanStatus.textContent = 'Success';
+        scanStatus.className = 'scan-badge-success';
+
         // Simple URL validation
         const isUrl = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?(\?.*)?(#.*)?$/i.test(text.trim());
         if (isUrl) {
@@ -590,8 +998,8 @@
           btnOpenLink.classList.add('hidden');
         }
       } else {
-        scanStatus.textContent = 'Lỗi';
-        scanStatus.className = 'text-[10px] font-semibold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-full uppercase';
+        scanStatus.textContent = 'Error';
+        scanStatus.className = 'scan-badge-error';
         btnOpenLink.classList.add('hidden');
       }
     }
@@ -599,24 +1007,24 @@
     btnCopyResult.addEventListener('click', () => {
       const text = scanTextResult.value;
       if (!text) return;
-      
+
       navigator.clipboard.writeText(text).then(() => {
         const btnText = btnCopyResult.querySelector('span');
         const originalText = btnText.textContent;
-        btnText.textContent = 'Đã copy!';
-        btnCopyResult.classList.add('bg-emerald-600', 'hover:bg-emerald-700');
-        btnCopyResult.classList.remove('bg-indigo-600', 'hover:bg-indigo-700');
-        
+        btnText.textContent = 'Copied!';
+        btnCopyResult.classList.add('px-btn-green');
+        btnCopyResult.classList.remove('px-btn-red');
+
         setTimeout(() => {
           btnText.textContent = originalText;
-          btnCopyResult.classList.remove('bg-emerald-600', 'hover:bg-emerald-700');
-          btnCopyResult.classList.add('bg-indigo-600', 'hover:bg-indigo-700');
+          btnCopyResult.classList.remove('px-btn-green');
+          btnCopyResult.classList.add('px-btn-red');
         }, 2000);
       });
     });
 
     btnClearScan.addEventListener('click', resetScanner);
-    
+
     function resetScanner() {
       scanFile.value = '';
       scanPreview.src = '';
@@ -633,24 +1041,24 @@
 
     async function startCamera() {
       resetScanner();
-      
+
       try {
         cameraStream = await navigator.mediaDevices.getUserMedia({
           video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
         });
-        
+
         webcam.srcObject = cameraStream;
         webcam.setAttribute('playsinline', true);
         webcam.play();
-        
+
         cameraActive = true;
         cameraContainer.classList.remove('hidden');
         dropZone.classList.add('hidden');
         btnToggleCamera.classList.add('hidden');
-        
+
         scanAnimationId = requestAnimationFrame(scanCameraFrame);
       } catch (err) {
-        alert('Không thể truy cập camera: ' + err.message);
+        alert('Cannot access camera: ' + err.message);
       }
     }
 
@@ -660,12 +1068,12 @@
         cancelAnimationFrame(scanAnimationId);
         scanAnimationId = null;
       }
-      
+
       if (cameraStream) {
         cameraStream.getTracks().forEach(track => track.stop());
         cameraStream = null;
       }
-      
+
       webcam.srcObject = null;
       cameraContainer.classList.add('hidden');
       dropZone.classList.remove('hidden');
@@ -674,24 +1082,24 @@
 
     function scanCameraFrame() {
       if (!cameraActive) return;
-      
+
       if (webcam.readyState === webcam.HAVE_ENOUGH_DATA) {
         cameraCanvas.width = webcam.videoWidth;
         cameraCanvas.height = webcam.videoHeight;
-        
+
         const ctx = cameraCanvas.getContext('2d');
         ctx.drawImage(webcam, 0, 0, cameraCanvas.width, cameraCanvas.height);
-        
+
         const imageData = ctx.getImageData(0, 0, cameraCanvas.width, cameraCanvas.height);
         const code = jsQR(imageData.data, imageData.width, imageData.height);
-        
+
         if (code) {
           scanPreview.src = cameraCanvas.toDataURL();
           showScanResult(code.data, true);
           return; // Stop scanning
         }
       }
-      
+
       scanAnimationId = requestAnimationFrame(scanCameraFrame);
     }
 
@@ -712,7 +1120,7 @@
         const end = Math.min((i + 1) * batchSize, items.length);
         const option = document.createElement('option');
         option.value = i;
-        option.textContent = `Mã ${start} - ${end}`;
+        option.textContent = `Codes ${start} - ${end}`;
         exportBatchSelect.appendChild(option);
       }
     }
@@ -735,7 +1143,7 @@
           <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
           <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
         </svg>
-        <span>Đang tạo...</span>
+        <span>Generating...</span>
       `;
 
       try {
@@ -786,7 +1194,7 @@
         URL.revokeObjectURL(url);
       } catch (err) {
         console.error(err);
-        alert('Có lỗi xảy ra khi tạo file ZIP: ' + err.message);
+        alert('Error creating ZIP file: ' + err.message);
       } finally {
         btnExportZip.disabled = false;
         btnExportZip.innerHTML = originalText;
